@@ -17,6 +17,43 @@ Step 2. Add the dependency
 dependencies {
         implementation 'com.github.cl-6666:serialPort:v1.0.0'
 }
+```  
+## kotlin使用介绍  
+``` kotlin  
+ // 打开串口
+        val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
+            .setOnSerialPortDataListener(object : OnSerialPortDataListener {
+                override fun onDataReceived(bytes: ByteArray) {
+                    Log.i(
+                        TAG,
+                        "onDataReceived [ byte[] ]: " + Arrays.toString(bytes)
+                    )
+                    Log.i(
+                        TAG,
+                        "onDataReceived [ String ]: " + String(bytes)
+                    )
+                    runOnUiThread { showToast(String.format("接收\n%s", String(bytes))) }
+                }
+
+                override fun onDataSent(bytes: ByteArray) {
+                    Log.i(
+                        TAG,
+                        "onDataSent [ byte[] ]: " + Arrays.toString(bytes)
+                    )
+                    Log.i(
+                        TAG,
+                        "onDataSent [ String ]: " + String(bytes)
+                    )
+                    runOnUiThread { showToast(String.format("发送\n%s", String(bytes))) }
+                }
+            })
+            .openSerialPort(device.file, 115200)
+
+        Log.i(
+            TAG,
+            "onCreate: openSerialPort = $openSerialPort"
+        )
+
 ```
 
 ## 查看串口
