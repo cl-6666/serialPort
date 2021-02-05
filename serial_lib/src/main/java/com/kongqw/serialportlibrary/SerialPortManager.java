@@ -45,16 +45,16 @@ public class SerialPortManager extends SerialPort {
         Log.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", device.getPath(), baudRate));
 
         // 校验串口权限
-//        if (!device.canRead() || !device.canWrite()) {
-//            boolean chmod777 = chmod777(device);
-//            if (!chmod777) {
-//                Log.i(TAG, "openSerialPort: 没有读写权限");
-//                if (null != mOnOpenSerialPortListener) {
-//                    mOnOpenSerialPortListener.onFail(device, OnOpenSerialPortListener.Status.NO_READ_WRITE_PERMISSION);
-//                }
-//                return false;
-//            }
-//        }
+        if (!device.canRead() || !device.canWrite()) {
+            boolean chmod777 = chmod777(device);
+            if (!chmod777) {
+                Log.i(TAG, "openSerialPort: 没有读写权限");
+                if (null != mOnOpenSerialPortListener) {
+                    mOnOpenSerialPortListener.onFail(device, OnOpenSerialPortListener.Status.NO_READ_WRITE_PERMISSION);
+                }
+                return false;
+            }
+        }
 
         if (!device.canRead() || !device.canWrite()) {
             try {

@@ -27,6 +27,7 @@ class SelectSerialPortActivity : AppCompatActivity(), OnItemClickListener {
             serialPortFinder.devices
 
         if (lv_devices != null) {
+            lv_devices.emptyView = tv_empty
             mDeviceAdapter = DeviceAdapter(applicationContext, devices)
             lv_devices.adapter = mDeviceAdapter
             lv_devices.onItemClickListener = this

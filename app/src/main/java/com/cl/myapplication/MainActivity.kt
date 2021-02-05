@@ -34,8 +34,6 @@ class MainActivity : AppCompatActivity(), OnOpenSerialPortListener {
         mSerialPortManager = SerialPortManager()
 
         // 打开串口
-
-        // 打开串口
         val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
             .setOnSerialPortDataListener(object : OnSerialPortDataListener {
                 override fun onDataReceived(bytes: ByteArray) {
