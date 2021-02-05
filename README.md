@@ -4,18 +4,18 @@
 # 项目依赖
 ``` Gradle
 allprojects {
-    repositories {
-        ...
-        maven { url 'https://jitpack.io' }
-    }
-}
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
 ```
 
 Step 2. Add the dependency
 
 ``` Gradle
 dependencies {
-        implementation 'com.github.cl-6666:serialPort:v1.0.0'
+       implementation 'com.github.cl-6666:serialPort:v1.0.0'
 }
 ```  
 ## kotlin使用介绍  
