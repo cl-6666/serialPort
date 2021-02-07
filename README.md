@@ -1,6 +1,13 @@
 # 说明  
 串口通信是软件和硬件通信经常用到的东西，大家在使用遇到问题了欢迎指出，我会第一时间修复
 
+# 拆包及粘包解决方案  
+<img src="https://img-blog.csdnimg.cn/20190709181621899.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2EyMTQwMjQ0NzU=,size_16,color_FFFFFF,t_70" width=280/>
+
+# 效果图  
+<img src="https://img-blog.csdnimg.cn/20190709181621899.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2EyMTQwMjQ0NzU=,size_16,color_FFFFFF,t_70" width=280/>
+
+
 # 项目依赖
 ``` Gradle
 allprojects {
