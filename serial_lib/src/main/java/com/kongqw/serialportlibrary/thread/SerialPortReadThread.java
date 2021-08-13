@@ -3,6 +3,10 @@ package com.kongqw.serialportlibrary.thread;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.cl.log.XLog;
+import com.kongqw.serialportlibrary.ConfigurationSdk;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -17,118 +21,43 @@ public abstract class SerialPortReadThread extends Thread {
 
     private static final String TAG = SerialPortReadThread.class.getSimpleName();
     private InputStream mInputStream;
-    private byte[] mReadBuffer;
+    ByteArrayOutputStream byteArrayOutputStream;
+    private ConfigurationSdk sdk;
 
-    public SerialPortReadThread(InputStream inputStream) {
+    public SerialPortReadThread(InputStream inputStream, ConfigurationSdk mSdk) {
         mInputStream = inputStream;
-        mReadBuffer = new byte[1024];
+        sdk = mSdk;
+        byteArrayOutputStream = new ByteArrayOutputStream();
     }
 
     @Override
     public void run() {
         super.run();
 
-//        while (!isInterrupted()) {
-//            try {
-//                if (null == mInputStream) {
-//                    return;
-//                }
-//
-//                Log.i(TAG, "run: ");
-//                int size = mInputStream.read(mReadBuffer);
-//
-//                if (-1 == size || 0 >= size) {
-//                    return;
-//                }
-//
-//                byte[] readBytes = new byte[size];
-//
-//                System.arraycopy(mReadBuffer, 0, readBytes, 0, size);
-//
-//                Log.i(TAG, "run: readBytes = " + new String(readBytes));
-//                Log.i(TAG, "readBytes = " + readBytes);
-//                onDataReceived(readBytes);
-////                checkRules(readBytes);
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                return;
-//            }
-//        }
-
-
         while (!isInterrupted()) {
             try {
-                if (null == mInputStream) {
-                    return;
-                }
-
-                int available = mInputStream.available();
-
-                if (available > 0) {
-                    Log.i(TAG, "run: ");
-                    int size = mInputStream.read(mReadBuffer);
-
-                    if (-1 == size || 0 >= size) {
-                        return;
-                    }
-
-                    if (size > 0) {
-                        byte[] readBytes = new byte[size];
-                        System.arraycopy(mReadBuffer, 0, readBytes, 0, size);
-                        Log.i(TAG, "run: readBytes = " + new String(readBytes));
-
-                        Log.i(TAG, "readBytes = " + readBytes);
-                        onDataReceived(readBytes);
-                    }
-                } else {
-                    SystemClock.sleep(200);
-                }
-            } catch (IOException e) {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            int value;
+            try {
+                if (mInputStream == null) return;
+                //inputStream.available()方法返回实际可读字节数，也就是总大小，同时时inputStream.read()方法不阻塞
+                if (mInputStream.available() == 0) continue;
+                byte[] buffers = new byte[mInputStream.available()];
+                while (mInputStream.available() > 0 && (value = mInputStream.read(buffers)) != 0x0d) {
+                    byteArrayOutputStream.write(buffers, 0, value);
+                }
+                byte[] res = byteArrayOutputStream.toByteArray();
+                checkRules(res);
+//                onDataReceived(res);
+                byteArrayOutputStream.reset();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
+            }
         }
-
-
-//        while (!isInterrupted()) {
-//            if (null == mInputStream) {
-//                return;
-//            }
-//
-//            Log.i(TAG, "run: ");
-//            int size = 0;
-//
-//            try {
-//                /** 获取流中数据的量*/
-//                int i = mInputStream.available();
-//                if (i == 0) {
-//                    size = 0;
-//                } else {
-//                    /** 流中有数据，则添加到临时数组中*/
-//                    size = mInputStream.read(mReadBuffer);
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            if (size > 0) {
-//                /** 发现有信息后就追加到临时变量*/
-//                Log.i("SerialPortReadThread", size + "");
-//                readBytes = DataUtil.arrayAppend(readBytes, mReadBuffer, size);
-//                Log.i("SerialPortReadThread", DataUtil.bytesToHexString(readBytes, readBytes.length));
-//            } else {
-//                /** 没有需要追加的数据了，回调*/
-//                if (readBytes != null) {
-//                    onDataReceived(readBytes);
-//                }
-//
-//                /** 清空，等待下个信息单元*/
-//                readBytes = null;
-//            }
-//
-//            SystemClock.sleep(50);
-//
-//        }
     }
 
 
@@ -138,36 +67,23 @@ public abstract class SerialPortReadThread extends Thread {
      * @param readBytes
      */
     private void checkRules(byte[] readBytes) {
-//        String bytes = Arrays.toString(readBytes);
-        Log.e("TAG", "原始readBytes----" + Arrays.toString(readBytes));
-
-        Log.e("TAG", "readBytes[0]原始readBytes" + readBytes[0]);
-        Log.e("TAG", "readBytes[1]原始readBytes" + readBytes[1]);
-        Log.e("TAG", "转换readBytes----" + Integer.toHexString(readBytes[0] & 0XFF));
-        Log.e("TAG", "转换readBytes----" + Integer.toHexString(readBytes[1] & 0XFF));
-        Log.e("TAG", "转换readBytes----" + Integer.toHexString(readBytes[2] & 0XFF));
-        Log.e("TAG", "转换readBytes----" + Integer.toHexString(readBytes[3] & 0XFF));
-
-        //解析帧头
-        if (readBytes[0] == -33 ||
-                readBytes[1] == -3) {
-            Log.e("TAG", "成立");
-
-
+        if (sdk.getMsgHead() != null) {
+            //解析帧头
+            if (readBytes[0] == sdk.getMsgHead()[0] || readBytes[1] == sdk.getMsgHead()[1]) {
+                XLog.e("TAG", "成立");
+                for (int i = 4; i < readBytes.length; i++) {
+                    if (readBytes[i] == sdk.getMsgHead()[0] ||
+                            readBytes[i] == sdk.getMsgHead()[1]) {
+                        XLog.i("转码的数据" +bytesToHex(subByte(readBytes, i, readBytes.length / 2)));
+                        onDataReceived(subByte(readBytes, i, readBytes.length));
+                    }
+                }
+            } else {
+                XLog.e("TAG", "数据不合法丢弃");
+            }
         } else {
-            Log.e("TAG", "数据不合法丢弃");
+            onDataReceived(readBytes);
         }
-
-
-//        if (Integer.toHexString(readBytes[0] & 0XFF).equals("df") ||
-//                Integer.toHexString(readBytes[1] & 0XFF).equals("fd")) {
-//            Log.e("TAG", "成立");
-//
-//
-//        } else {
-//            Log.e("TAG", "数据不合法丢弃");
-//        }
-
     }
 
     @Override
@@ -191,4 +107,30 @@ public abstract class SerialPortReadThread extends Thread {
         }
 
     }
+
+
+    public byte[] subByte(byte[] b, int off, int length) {
+
+        byte[] b1 = new byte[length];
+
+        System.arraycopy(b, off, b1, 0, length);
+
+        return b1;
+
+    }
+
+
+    public static String bytesToHex(byte[] bytes) {
+        StringBuffer sb = new StringBuffer();
+        for(int i = 0; i < bytes.length; i++) {
+            String hex = Integer.toHexString(bytes[i] & 0xFF);
+            if(hex.length() < 2){
+                sb.append(0);
+            }
+            sb.append(hex);
+        }
+        return sb.toString();
+    }
 }
+
+

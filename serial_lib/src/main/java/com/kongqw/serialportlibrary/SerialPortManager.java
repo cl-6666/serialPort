@@ -1,10 +1,16 @@
 package com.kongqw.serialportlibrary;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
 
+import com.cl.log.XConsolePrinter;
+import com.cl.log.XFilePrinter;
+import com.cl.log.XLog;
+import com.cl.log.XLogConfig;
+import com.cl.log.XLogManager;
 import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener;
 import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener;
 import com.kongqw.serialportlibrary.thread.SerialPortReadThread;
@@ -30,33 +36,86 @@ public class SerialPortManager extends SerialPort {
     private HandlerThread mSendingHandlerThread;
     private Handler mSendingHandler;
     private SerialPortReadThread mSerialPortReadThread;
+    private ConfigurationSdk mSdk;
+    private Context mContext;
+    //标记是否初始化
+    private boolean isInit = false;
 
 
+    private SerialPortManager() {
+    }
+
+    private static class SerialPortInstance {
+        private static final SerialPortManager SERIALPORT = new SerialPortManager();
+    }
+
+    public static SerialPortManager getInstance() {
+        return SerialPortInstance.SERIALPORT;
+    }
+
+
+    public void init(ConfigurationSdk sdk, Context context) {
+        if (isInit) return;
+        this.mSdk = sdk;
+        this.mContext = context;
+        initLog();
+        openSerialPort();
+        isInit = true;
+    }
+
+
+    private void initLog() {
+        XLogManager.init(new XLogConfig() {
+            @Override
+            public String getGlobalTag() {
+                return mSdk.getsLogType();
+            }
+
+            @Override
+            public boolean enable() {
+                return mSdk.issDebug();
+            }
+
+            @Override
+            public JsonParser injectJsonParser() {
+                //TODO 根据需求自行添加
+                return super.injectJsonParser();
+            }
+
+            @Override
+            public boolean includeThread() {
+                return mSdk.issIncludeThread();
+            }
+
+            @Override
+            public int stackTraceDepth() {
+                return 5;
+            }
+        }, new XConsolePrinter(), XFilePrinter.getInstance(mContext.getCacheDir().getAbsolutePath(), 0));
+
+    }
 
     /**
      * 打开串口
      *
-     * @param device   串口设备
-     * @param baudRate 波特率
      * @return 打开是否成功
      */
-    public boolean openSerialPort(File device, int baudRate) {
-
-        Log.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", device.getPath(), baudRate));
+    public boolean openSerialPort() {
+        Log.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", mSdk.getDevice().getPath(), mSdk.getBaudRate()));
 
         // 校验串口权限
-        if (!device.canRead() || !device.canWrite()) {
-            boolean chmod777 = chmod777(device);
+        if (!mSdk.getDevice().canRead() || !mSdk.getDevice().canWrite()) {
+            boolean chmod777 = chmod777(mSdk.getDevice());
             if (!chmod777) {
                 Log.i(TAG, "openSerialPort: 没有读写权限");
                 if (null != mOnOpenSerialPortListener) {
-                    mOnOpenSerialPortListener.onFail(device, OnOpenSerialPortListener.Status.NO_READ_WRITE_PERMISSION);
+                    mOnOpenSerialPortListener.onFail(mSdk.getDevice(), OnOpenSerialPortListener.Status.NO_READ_WRITE_PERMISSION);
                 }
                 return false;
             }
         }
 
-        if (!device.canRead() || !device.canWrite()) {
+        if (!mSdk.getDevice().canRead() || !mSdk.getDevice().canWrite()) {
             try {
                 /* Missing read/write permission, trying to chmod the file */
                 /*Process su;
@@ -67,7 +126,7 @@ public class SerialPortManager extends SerialPort {
                     throw new SecurityException();
                 }*/
                 List<String> commnandList1 = new ArrayList<>();
-                commnandList1.add("chmod 777 "+device.getAbsolutePath());
+                commnandList1.add("chmod 777 " + mSdk.getDevice().getAbsolutePath());
                 ShellUtils.execCommand(commnandList1, true);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -76,12 +135,12 @@ public class SerialPortManager extends SerialPort {
         }
 
         try {
-            mFd = open(device.getAbsolutePath(), baudRate, 0);
+            mFd = open(mSdk.getDevice().getAbsolutePath(), mSdk.getBaudRate(), 0);
             mFileInputStream = new FileInputStream(mFd);
             mFileOutputStream = new FileOutputStream(mFd);
             Log.i(TAG, "openSerialPort: 串口已经打开 " + mFd);
             if (null != mOnOpenSerialPortListener) {
-                mOnOpenSerialPortListener.onSuccess(device);
+                mOnOpenSerialPortListener.onSuccess(mSdk.getDevice());
             }
             // 开启发送消息的线程
             startSendThread();
@@ -91,7 +150,7 @@ public class SerialPortManager extends SerialPort {
         } catch (Exception e) {
             e.printStackTrace();
             if (null != mOnOpenSerialPortListener) {
-                mOnOpenSerialPortListener.onFail(device, OnOpenSerialPortListener.Status.OPEN_FAIL);
+                mOnOpenSerialPortListener.onFail(mSdk.getDevice(), OnOpenSerialPortListener.Status.OPEN_FAIL);
             }
         }
         return false;
@@ -101,7 +160,7 @@ public class SerialPortManager extends SerialPort {
      * 关闭串口
      */
     public void closeSerialPort() {
-
+        isInit = false;
         if (null != mFd) {
             close();
             mFd = null;
@@ -199,7 +258,7 @@ public class SerialPortManager extends SerialPort {
      * 开启接收消息的线程
      */
     private void startReadThread() {
-        mSerialPortReadThread = new SerialPortReadThread(mFileInputStream) {
+        mSerialPortReadThread = new SerialPortReadThread(mFileInputStream, mSdk) {
             @Override
             public void onDataReceived(byte[] bytes) {
                 if (null != mOnSerialPortDataListener) {

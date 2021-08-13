@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity(), OnOpenSerialPortListener {
             finish()
             return
         }
-        mSerialPortManager = SerialPortManager()
+
 
         // 打开串口
         val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity(), OnOpenSerialPortListener {
                     runOnUiThread { showToast(String.format("发送\n%s", String(bytes))) }
                 }
             })
-            .openSerialPort(device.file, 115200)
 
         Log.i(
             TAG,
