@@ -43,9 +43,10 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
         //构建初始化参数
         ConfigurationSdk sdk = new ConfigurationSdk.ConfigurationBuilder(device.getFile(), 115200)
                 .log("TAG", true, false)
-                .msgHead(b1)
+//                .msgHead(b1)   打开说明需要效验
                 .build();
-        SerialPortManager.getInstance().init(sdk,this);
+        mSerialPortManager = SerialPortManager.getInstance();
+        mSerialPortManager.init(sdk, this);
 
         // 打开串口
         SerialPortManager.getInstance().setOnOpenSerialPortListener(this)
