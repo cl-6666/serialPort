@@ -36,39 +36,7 @@ dependencies {
 ```  
 ## kotlin使用介绍  
 ``` kotlin  
- // 打开串口
-        val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
-            .setOnSerialPortDataListener(object : OnSerialPortDataListener {
-                override fun onDataReceived(bytes: ByteArray) {
-                    Log.i(
-                        TAG,
-                        "onDataReceived [ byte[] ]: " + Arrays.toString(bytes)
-                    )
-                    Log.i(
-                        TAG,
-                        "onDataReceived [ String ]: " + String(bytes)
-                    )
-                    runOnUiThread { showToast(String.format("接收\n%s", String(bytes))) }
-                }
-
-                override fun onDataSent(bytes: ByteArray) {
-                    Log.i(
-                        TAG,
-                        "onDataSent [ byte[] ]: " + Arrays.toString(bytes)
-                    )
-                    Log.i(
-                        TAG,
-                        "onDataSent [ String ]: " + String(bytes)
-                    )
-                    runOnUiThread { showToast(String.format("发送\n%s", String(bytes))) }
-                }
-            })
-            .openSerialPort(device.file, 115200)
-
-        Log.i(
-            TAG,
-            "onCreate: openSerialPort = $openSerialPort"
-        )
+ 更新中
 
 ```
 
@@ -82,12 +50,13 @@ ArrayList<Device> devices = serialPortFinder.getDevices();
 ### 初始化
 
 ``` Java
-   //构建初始化参数
+      //构建初始化参数
         ConfigurationSdk sdk = new ConfigurationSdk.ConfigurationBuilder(device.getFile(), 115200)
                 .log("TAG", true, false)
-     //                .msgHead(b1)   打开说明需要效验数据粘包，不打开就自己封装粘包协议
+//                .msgHead(b1)   打开说明需要效验
                 .build();
-        SerialPortManager.getInstance().init(sdk,this);
+        mSerialPortManager = SerialPortManager.getInstance();
+        mSerialPortManager.init(sdk, this);
 
         // 打开串口
         SerialPortManager.getInstance().setOnOpenSerialPortListener(this)
@@ -160,7 +129,7 @@ mSerialPortManager.setOnSerialPortDataListener(new OnSerialPortDataListener() {
 - 返回：串口打开是否成功
 
 ``` Java
-boolean openSerialPort = mSerialPortManager.openSerialPort(device.getFile(), 115200);
+    mSerialPortManager.init(sdk, this);
 ```
 
 ### 发送数据
