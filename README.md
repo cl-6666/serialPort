@@ -35,9 +35,44 @@ dependencies {
   implementation 'com.github.cl-6666:serialPort:v2.0.0'
 }
 ```  
-### kotlin使用介绍  
+### kotlin使用初始化  
 ``` kotlin  
- 更新中
+   //构建初始化参数
+        val sdk = ConfigurationBuilder(device.file, 115200)   //串口号，波特率
+            .log("TAG", true, false)   //日志标识，是否开启sdk日志，是否开启日志堆栈信息显示
+//            .msgHead(b1)  明确协议头可以开启
+            .build()
+        mSerialPortManager = SerialPortManager.getInstance()
+        mSerialPortManager?.init(sdk, this)
+
+        // 打开串口
+        val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
+            .setOnSerialPortDataListener(object : OnSerialPortDataListener {
+                override fun onDataReceived(bytes: ByteArray) {
+                    Log.i(
+                        TAG,
+                        "onDataReceived [ byte[] ]: " + Arrays.toString(bytes)
+                    )
+                    Log.i(
+                        TAG,
+                        "onDataReceived [ String ]: " + String(bytes)
+                    )
+                    runOnUiThread { showToast(String.format("接收\n%s", String(bytes))) }
+                }
+
+                override fun onDataSent(bytes: ByteArray) {
+                    Log.i(
+                        TAG,
+                        "onDataSent [ byte[] ]: " + Arrays.toString(bytes)
+                    )
+                    Log.i(
+                        TAG,
+                        "onDataSent [ String ]: " + String(bytes)
+                    )
+                    runOnUiThread { showToast(String.format("发送\n%s", String(bytes))) }
+                }
+            })
+
 
 ```
 
@@ -48,7 +83,7 @@ SerialPortFinder serialPortFinder = new SerialPortFinder();
 ArrayList<Device> devices = serialPortFinder.getDevices();
 ```
 
-### 初始化
+### java使用初始化
 
 ``` Java
       //构建初始化参数
