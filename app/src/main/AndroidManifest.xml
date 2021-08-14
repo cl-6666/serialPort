@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         <activity
-            android:name=".MainActivity2"
+            android:name=".MainJavaActivity"
             android:exported="true"></activity>
         <activity android:name=".SelectSerialPortActivity">
             <intent-filter>

@@ -18,10 +18,10 @@ import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener;
 import java.io.File;
 import java.util.Arrays;
 
-public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPortListener {
+public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialPortListener {
 
 
-    private static final String TAG = MainActivity2.class.getSimpleName();
+    private static final String TAG = MainJavaActivity.class.getSimpleName();
     public static final String DEVICE = "device";
     private SerialPortManager mSerialPortManager;
     private Toast mToast;
@@ -32,7 +32,7 @@ public class MainActivity2 extends AppCompatActivity implements OnOpenSerialPort
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_main_java);
         Device device = (Device) getIntent().getSerializableExtra(DEVICE);
         Log.i(TAG, "onCreate: device = " + device);
         if (null == device) {

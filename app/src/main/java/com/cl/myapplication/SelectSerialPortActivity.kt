@@ -37,7 +37,7 @@ class SelectSerialPortActivity : AppCompatActivity(), OnItemClickListener {
 
     override fun onItemClick(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
         val device = mDeviceAdapter!!.getItem(position)
-        val intent = Intent(this, MainActivity2::class.java)
+        val intent = Intent(this, MainJavaActivity::class.java)
         intent.putExtra(DEVICE, device)
         startActivity(intent)
     }

@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.kongqw.serialportlibrary.ConfigurationSdk
+import com.kongqw.serialportlibrary.ConfigurationSdk.ConfigurationBuilder
 import com.kongqw.serialportlibrary.Device
 import com.kongqw.serialportlibrary.SerialPortManager
 import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener
@@ -32,6 +34,13 @@ class MainActivity : AppCompatActivity(), OnOpenSerialPortListener {
             return
         }
 
+        //构建初始化参数
+        val sdk = ConfigurationBuilder(device.file, 115200)   //串口号，波特率
+            .log("TAG", true, false)   //日志标识，是否开启sdk日志，是否开启日志堆栈信息显示
+//            .msgHead(b1)  明确协议头可以开启
+            .build()
+        mSerialPortManager = SerialPortManager.getInstance()
+        mSerialPortManager?.init(sdk, this)
 
         // 打开串口
         val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
