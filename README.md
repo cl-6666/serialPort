@@ -35,13 +35,13 @@ dependencies {
   implementation 'com.github.cl-6666:serialPort:v2.0.0'
 }
 ```  
-## kotlin使用介绍  
+### kotlin使用介绍  
 ``` kotlin  
  更新中
 
 ```
 
-## 查看串口
+### 查看串口
 
 ``` Java
 SerialPortFinder serialPortFinder = new SerialPortFinder();
