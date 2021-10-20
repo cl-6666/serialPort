@@ -5,10 +5,14 @@
 <img src="https://github.com/cl-6666/serialPort/blob/master/WechatIMG415.png" width="200" height="200" alt="介绍"/>
 
 # 效果图  
-<img src="https://github.com/cl-6666/serialPort/blob/master/device-img.png" width="200" height="200" alt="演示"/>  
+<img src="https://github.com/cl-6666/serialPort/blob/master/sample_picture.png" width="200" height="200" alt="演示"/>  
 
 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
+
+V3.0.0：   
+1、基于现有的串口框架增加调试助手，方便测试
+2、框架新增打开方法，支持直接修改串口
 
 V2.0.0：   
 1、解决数据包接收不完整bug  
