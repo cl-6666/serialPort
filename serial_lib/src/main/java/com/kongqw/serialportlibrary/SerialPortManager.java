@@ -95,19 +95,82 @@ public class SerialPortManager extends SerialPort {
 
     }
 
+
+    /**
+     * 打开串口
+     *
+     * @param devicePath
+     * @param baudRate
+     * @return
+     */
+    public boolean openSerialPort(String devicePath, int baudRate) {
+        closeSerialPort();
+        XLog.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", devicePath, baudRate));
+        // 校验串口权限
+        if (!new File(devicePath).canRead() || !new File(devicePath).canWrite()) {
+            boolean chmod777 = chmod777(new File(devicePath));
+            if (!chmod777) {
+                XLog.i(TAG, "openSerialPort: 没有读写权限");
+                if (null != mOnOpenSerialPortListener) {
+                    mOnOpenSerialPortListener.onFail(mSdk.getDevice(), OnOpenSerialPortListener.Status.NO_READ_WRITE_PERMISSION);
+                }
+                return false;
+            }
+        }
+        if (!new File(devicePath).canRead() || !new File(devicePath).canWrite()) {
+            try {
+                /* Missing read/write permission, trying to chmod the file */
+                /*Process su;
+                su = Runtime.getRuntime().exec("su");
+                String cmd = "chmod 666 " + device.getAbsolutePath() + "\n" + "exit\n";
+                su.getOutputStream().write(cmd.getBytes());
+                if ((su.waitFor() != 0) || !device.canRead() || !device.canWrite()) {
+                    throw new SecurityException();
+                }*/
+                List<String> commnandList1 = new ArrayList<>();
+                commnandList1.add("chmod 777 " + new File(devicePath).getAbsolutePath());
+                ShellUtils.execCommand(commnandList1, true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new SecurityException();
+            }
+        }
+
+        try {
+            mFd = open(new File(devicePath).getAbsolutePath(), baudRate, 0);
+            mFileInputStream = new FileInputStream(mFd);
+            mFileOutputStream = new FileOutputStream(mFd);
+            XLog.i(TAG, "openSerialPort: 串口已经打开 " + mFd);
+            if (null != mOnOpenSerialPortListener) {
+                mOnOpenSerialPortListener.onSuccess(new File(devicePath));
+            }
+            // 开启发送消息的线程
+            startSendThread();
+            // 开启接收消息的线程
+            startReadThread();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (null != mOnOpenSerialPortListener) {
+                mOnOpenSerialPortListener.onFail(new File(devicePath), OnOpenSerialPortListener.Status.OPEN_FAIL);
+            }
+        }
+        return false;
+    }
+
+
     /**
      * 打开串口
      *
      * @return 打开是否成功
      */
     public boolean openSerialPort() {
-        Log.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", mSdk.getDevice().getPath(), mSdk.getBaudRate()));
-
+        XLog.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", mSdk.getDevice().getPath(), mSdk.getBaudRate()));
         // 校验串口权限
         if (!mSdk.getDevice().canRead() || !mSdk.getDevice().canWrite()) {
             boolean chmod777 = chmod777(mSdk.getDevice());
             if (!chmod777) {
-                Log.i(TAG, "openSerialPort: 没有读写权限");
+                XLog.i(TAG, "openSerialPort: 没有读写权限");
                 if (null != mOnOpenSerialPortListener) {
                     mOnOpenSerialPortListener.onFail(mSdk.getDevice(), OnOpenSerialPortListener.Status.NO_READ_WRITE_PERMISSION);
                 }
@@ -138,7 +201,7 @@ public class SerialPortManager extends SerialPort {
             mFd = open(mSdk.getDevice().getAbsolutePath(), mSdk.getBaudRate(), 0);
             mFileInputStream = new FileInputStream(mFd);
             mFileOutputStream = new FileOutputStream(mFd);
-            Log.i(TAG, "openSerialPort: 串口已经打开 " + mFd);
+            XLog.i(TAG, "openSerialPort: 串口已经打开 " + mFd);
             if (null != mOnOpenSerialPortListener) {
                 mOnOpenSerialPortListener.onSuccess(mSdk.getDevice());
             }
@@ -187,10 +250,6 @@ public class SerialPortManager extends SerialPort {
             }
             mFileOutputStream = null;
         }
-
-        mOnOpenSerialPortListener = null;
-
-        mOnSerialPortDataListener = null;
     }
 
     /**

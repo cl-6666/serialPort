@@ -22,10 +22,7 @@ class SelectSerialPortActivity : AppCompatActivity(), OnItemClickListener {
         setContentView(R.layout.activity_select_serial_port)
 
         val serialPortFinder = SerialPortFinder()
-
-        val devices =
-            serialPortFinder.devices
-
+        val devices = serialPortFinder.devices
         if (lv_devices != null) {
             lv_devices.emptyView = tv_empty
             mDeviceAdapter = DeviceAdapter(applicationContext, devices)
@@ -37,7 +34,7 @@ class SelectSerialPortActivity : AppCompatActivity(), OnItemClickListener {
 
     override fun onItemClick(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
         val device = mDeviceAdapter!!.getItem(position)
-        val intent = Intent(this, MainJavaActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.putExtra(DEVICE, device)
         startActivity(intent)
     }

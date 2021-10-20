@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
 
 public class SerialPortFinder {
 
@@ -62,5 +64,26 @@ public class SerialPortFinder {
             e.printStackTrace();
         }
         return devices;
+    }
+
+
+    public String[] getAllDevicesPath() {
+        Vector<String> devices = new Vector<String>();
+        // Parse each driver
+        Iterator<Driver> itdriv;
+        try {
+            itdriv = getDrivers().iterator();
+            while (itdriv.hasNext()) {
+                Driver driver = itdriv.next();
+                Iterator<File> itdev = driver.getDevices().iterator();
+                while (itdev.hasNext()) {
+                    String device = itdev.next().getAbsolutePath();
+                    devices.add(device);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return devices.toArray(new String[devices.size()]);
     }
 }
