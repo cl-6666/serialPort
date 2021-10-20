@@ -190,4 +190,11 @@ mSerialPortManager.closeSerialPort();
 
 > PS：传输协议需自行封装
 
-博客地址：https://blog.csdn.net/a214024475/article/details/113735085
+博客地址：https://blog.csdn.net/a214024475/article/details/113735085  
+
+
+
+## 通用疑问解答  
+1.假如正常打开串口，但是收不到消息的话，请检查你的波特率  
+2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
+
