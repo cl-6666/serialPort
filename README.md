@@ -199,6 +199,9 @@ mSerialPortManager.closeSerialPort();
 2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
 3.有好的建议或者问题欢迎提出
 
+## 感谢
+- [AndroidSerialPort](https://github.com/kongqw/AndroidSerialPort)
+
 ## 作者博客地址    
 博客地址：https://blog.csdn.net/a214024475/article/details/113735085  
 
