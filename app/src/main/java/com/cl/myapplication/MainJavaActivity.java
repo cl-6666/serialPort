@@ -93,6 +93,7 @@ public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialP
                     LogManager.instance().post(new RecvMessage(Arrays.toString(bytes)));
                 }
 
+
             }
 
             @Override
