@@ -1,15 +1,17 @@
 # 说明  
 >串口通信是软件和硬件通信经常用到的东西，我在这里开源一个我自己平常也在用的串口库，大家在使用遇到问题了欢迎指出，我会第一时间修复，强烈建议以依赖的方式导入，这样避免代码同步。
 
-# 拆包及粘包解决方案  
-<img src="https://github.com/cl-6666/serialPort/blob/master/WechatIMG415.png" width="200" height="200" alt="介绍"/>
-
 # 效果图  
 <img src="https://github.com/cl-6666/serialPort/blob/master/sample_picture.png" width="650" height="360" alt="演示"/>  
 
 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
 
+- v3.1.0：(2023年02月20日)
+  - 支持多串口接收和发送(目前sdk支持6路串口)
+  - 避免分包接收，支持大量数据一次性接收
+  - 代码优化 
+  
 - v3.0.0：(2021年10月20日)
   - 基于现有的串口框架增加调试助手，方便测试
   - 框架新增打开方法，支持直接修改串口
