@@ -320,6 +320,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         } else {
             mConversionNotice = true;
         }
+
     }
 
 
