@@ -14,9 +14,9 @@ import java.util.List;
 public class ShellUtils {
 
 
-    public static final String COMMAND_SU       = "su";
-    public static final String COMMAND_SH       = "sh";
-    public static final String COMMAND_EXIT     = "exit\n";
+    public static final String COMMAND_SU = "su";
+    public static final String COMMAND_SH = "sh";
+    public static final String COMMAND_EXIT = "exit\n";
     public static final String COMMAND_LINE_END = "\n";
 
 
@@ -111,6 +111,7 @@ public class ShellUtils {
     /**
      * execute shell commands
      *  
+     *
      * @param commands        command array
      * @param isRoot          whether need to run with root
      * @param isNeedResultMsg whether need result msg
@@ -217,7 +218,7 @@ public class ShellUtils {
         /**
          * result of command
          **/
-        public int    result;
+        public int result;
         /**
          * success message of command result
          **/

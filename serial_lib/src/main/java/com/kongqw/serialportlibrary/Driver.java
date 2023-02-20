@@ -47,4 +47,7 @@ public class Driver {
         return mDriverName;
     }
 
+    public String getmDeviceRoot() {
+        return mDeviceRoot;
+    }
 }

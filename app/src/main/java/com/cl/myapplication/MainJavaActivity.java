@@ -13,8 +13,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.cl.log.XLog;
 import com.cl.myapplication.constant.PreferenceKeys;
@@ -27,24 +25,26 @@ import com.cl.myapplication.message.RecvMessage;
 import com.cl.myapplication.message.SendMessage;
 import com.cl.myapplication.util.PrefHelper;
 import com.hjq.toast.ToastUtils;
-import com.kongqw.serialportlibrary.ConfigurationSdk;
 import com.kongqw.serialportlibrary.Device;
+import com.kongqw.serialportlibrary.Driver;
+import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
 import com.kongqw.serialportlibrary.SerialPortFinder;
-import com.kongqw.serialportlibrary.SerialPortManager;
-import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener;
-import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener;
+import com.kongqw.serialportlibrary.SerialUtils;
+import com.kongqw.serialportlibrary.enumerate.SerialStatus;
+import com.kongqw.serialportlibrary.listener.SerialPortDirectorListens;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialPortListener, AdapterView.OnItemSelectedListener {
+public class MainJavaActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private static final String TAG = MainJavaActivity.class.getSimpleName();
-    private SerialPortManager mSerialPortManager;
     private ActivityMainJavaBinding binding;
     private Device mDevice;
     private byte[] b1 = {(byte) 33, (byte) -3};
@@ -72,19 +72,18 @@ public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialP
         initFragment();
         initDevice();
         initSpinners();
-        SerialPortManager.getInstance().setOnOpenSerialPortListener(this);
-//        //构建初始化参数
-        ConfigurationSdk sdk = new ConfigurationSdk.ConfigurationBuilder(new File("/dev/ttyS4"), 115200)
-                .log("TAG", true, false)
-//                .msgHead(b1)   打开说明需要效验
-                .build();
-        mSerialPortManager = SerialPortManager.getInstance();
-        mSerialPortManager.init(sdk, this);
 
+        //多串口演示
+//        List<Driver> list=new ArrayList<>();
+//        //串口ttyS4
+//        list.add(new Driver("/dev/ttyS4", "115200"));
+//        SerialUtils.getInstance().openSerialPortI(list);
 
-        SerialPortManager.getInstance().setOnSerialPortDataListener(new OnSerialPortDataListener() {
+        //串口数据监听
+        SerialUtils.getInstance().setmSerialPortDirectorListens(new SerialPortDirectorListens() {
             @Override
-            public void onDataReceived(byte[] bytes) {
+            public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
+                Log.i(TAG, "当前接收串口类型：" + serialPortEnum.name());
                 Log.i(TAG, "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
                 Log.i(TAG, "onDataReceived [ String ]: " + new String(bytes));
                 if (mConversionNotice) {
@@ -92,12 +91,11 @@ public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialP
                 } else {
                     LogManager.instance().post(new RecvMessage(Arrays.toString(bytes)));
                 }
-
-
             }
 
             @Override
-            public void onDataSent(byte[] bytes) {
+            public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
+                Log.i(TAG, "当前发送串口类型：" + serialPortEnum.name());
                 Log.i(TAG, "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
                 Log.i(TAG, "onDataSent [ String ]: " + new String(bytes));
                 if (mConversionNotice) {
@@ -106,29 +104,54 @@ public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialP
                     LogManager.instance().post(new SendMessage(Arrays.toString(bytes)));
                 }
             }
-        });
-//
 
-        binding.btnOpenDevice.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (mOpened) {
-                    mSerialPortManager.closeSerialPort();
-                    mOpened = false;
-                } else {
-                    // 打开串口
-                    XLog.i(TAG, "打开的串口为：" + mDevice.getName() + "----" + Integer.parseInt(mDevice.getRoot()));
-                    mSerialPortManager.openSerialPort(mDevice.getName(), Integer.parseInt(mDevice.getRoot()));
+            public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
+                XLog.i("串口打开状态："+device.getName()+"---打开状态："+status.name());
+                switch (serialPortEnum) {
+                    case SERIAL_ONE:
+                        switch (status) {
+                            case SUCCESS_OPENED:
+                                ToastUtils.show("串口打开成功");
+                                mOpened = true;
+                                updateViewState(true);
+                                break;
+                            case NO_READ_WRITE_PERMISSION:
+                                ToastUtils.show("没有读写权限");
+                                updateViewState(false);
+                                break;
+                            case OPEN_FAIL:
+                                ToastUtils.show("串口打开失败");
+                                updateViewState(false);
+                                break;
+                        }
+                        break;
+                    case SERIAL_TWO:
+                        XLog.i("根据实际多串口场景演示");
+                        break;
                 }
-                updateViewState(mOpened);
             }
         });
 
+        binding.btnOpenDevice.setOnClickListener(v -> {
+            if (mOpened) {
+                SerialUtils.getInstance().serialPortClose();
+                mOpened = false;
+            } else {
+                //多串口演示
+                List<Driver> list = new ArrayList<>();
+                list.clear();
+                list.add(new Driver(mDevice.getName(), mDevice.getRoot()));
+                // 打开串口
+                XLog.i(TAG, "打开的串口为：" + mDevice.getName() + "----" + Integer.parseInt(mDevice.getRoot()));
+                SerialUtils.getInstance().manyOpenSerialPort(list);
+            }
+            updateViewState(mOpened);
+        });
 
         binding.btnSendData.setOnClickListener((view) -> {
             onSend();
         });
-
 
     }
 
@@ -206,41 +229,18 @@ public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialP
     }
 
 
-    @Override
-    public void onSuccess(File device) {
-        ToastUtils.show("串口打开成功");
-        mOpened = true;
-        updateViewState(true);
-    }
-
-    @Override
-    public void onFail(File device, Status status) {
-        switch (status) {
-            case NO_READ_WRITE_PERMISSION:
-                ToastUtils.show("没有读写权限");
-                updateViewState(false);
-                break;
-            case OPEN_FAIL:
-            default:
-                ToastUtils.show("串口打开失败");
-                updateViewState(false);
-                break;
-        }
-    }
-
-
     /**
      * 发送数据
-     *
      */
     public void onSend() {
-        String sendContent =  binding.etData.getText().toString().trim();
+        String sendContent = binding.etData.getText().toString().trim();
         if (TextUtils.isEmpty(sendContent)) {
             Log.i(TAG, "onSend: 发送内容为 null");
             return;
         }
         byte[] sendContentBytes = sendContent.getBytes();
-        boolean sendBytes = mSerialPortManager.sendBytes(sendContentBytes);
+        //todo 这里默认发送一路串口，根据用户自定义
+        boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
         Log.i(TAG, "onSend: sendBytes = " + sendBytes);
 
     }
@@ -267,10 +267,7 @@ public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialP
 
     @Override
     protected void onDestroy() {
-        if (null != mSerialPortManager) {
-            mSerialPortManager.closeSerialPort();
-            mSerialPortManager = null;
-        }
+        SerialUtils.getInstance().serialPortClose();
         super.onDestroy();
     }
 

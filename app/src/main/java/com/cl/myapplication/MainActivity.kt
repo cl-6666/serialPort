@@ -6,17 +6,11 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.kongqw.serialportlibrary.ConfigurationSdk
-import com.kongqw.serialportlibrary.ConfigurationSdk.ConfigurationBuilder
 import com.kongqw.serialportlibrary.Device
 import com.kongqw.serialportlibrary.SerialPortManager
-import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener
-import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
-import java.util.*
 
-class MainActivity : AppCompatActivity(), OnOpenSerialPortListener {
+class MainActivity : AppCompatActivity(){
 
     private val TAG = MainActivity::class.java.simpleName
     val DEVICE = "device"
@@ -33,62 +27,8 @@ class MainActivity : AppCompatActivity(), OnOpenSerialPortListener {
             finish()
             return
         }
-
-        //构建初始化参数
-        val sdk = ConfigurationBuilder(device.file, 115200)   //串口号，波特率
-            .log("TAG", true, false)   //日志标识，是否开启sdk日志，是否开启日志堆栈信息显示
-//            .msgHead(b1)  明确协议头可以开启
-            .build()
-        mSerialPortManager = SerialPortManager.getInstance()
-        mSerialPortManager?.init(sdk, this)
-
-        // 打开串口
-        val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
-            .setOnSerialPortDataListener(object : OnSerialPortDataListener {
-                override fun onDataReceived(bytes: ByteArray) {
-                    Log.i(
-                        TAG,
-                        "onDataReceived [ byte[] ]: " + Arrays.toString(bytes)
-                    )
-                    Log.i(
-                        TAG,
-                        "onDataReceived [ String ]: " + String(bytes)
-                    )
-                    runOnUiThread { showToast(String.format("接收\n%s", String(bytes))) }
-                }
-
-                override fun onDataSent(bytes: ByteArray) {
-                    Log.i(
-                        TAG,
-                        "onDataSent [ byte[] ]: " + Arrays.toString(bytes)
-                    )
-                    Log.i(
-                        TAG,
-                        "onDataSent [ String ]: " + String(bytes)
-                    )
-                    runOnUiThread { showToast(String.format("发送\n%s", String(bytes))) }
-                }
-            })
-
-        Log.i(
-            TAG,
-            "onCreate: openSerialPort = $openSerialPort"
-        )
     }
 
-
-    override fun onSuccess(device: File?) {
-        Toast.makeText(
-            this,
-            String.format("串口 [%s] 打开成功", device!!.path),
-            Toast.LENGTH_SHORT
-        ).show()
-
-    }
-
-    override fun onFail(device: File?, status: OnOpenSerialPortListener.Status?) {
-
-    }
 
     fun onSend(view: View) {
         val editTextSendContent = et_send_content.text.toString()

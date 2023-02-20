@@ -3,6 +3,7 @@ package com.cl.myapplication;
 import android.app.Application;
 
 import com.hjq.toast.ToastUtils;
+import com.kongqw.serialportlibrary.SerialUtils;
 
 /**
  * 项目：serialPort
@@ -18,5 +19,6 @@ public class App extends Application {
         super.onCreate();
         // 初始化 Toast 框架
         ToastUtils.init(this);
+        SerialUtils.getInstance().init(this,true,"TAG");
     }
 }

@@ -1,15 +1,8 @@
 package com.kongqw.serialportlibrary.thread;
 
-import android.os.SystemClock;
-import android.util.Log;
-
-import com.cl.log.XLog;
-import com.kongqw.serialportlibrary.ConfigurationSdk;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 
 /**
@@ -18,22 +11,21 @@ import java.util.Arrays;
 public abstract class SerialPortReadThread extends Thread {
 
     public abstract void onDataReceived(byte[] bytes);
-
     private static final String TAG = SerialPortReadThread.class.getSimpleName();
     private InputStream mInputStream;
     ByteArrayOutputStream byteArrayOutputStream;
-    private ConfigurationSdk sdk;
+    private byte[] mReadBuffer;
+    byte[] readBytes = null;
 
-    public SerialPortReadThread(InputStream inputStream, ConfigurationSdk mSdk) {
+    public SerialPortReadThread(InputStream inputStream) {
         mInputStream = inputStream;
-        sdk = mSdk;
         byteArrayOutputStream = new ByteArrayOutputStream();
+        mReadBuffer = new byte[1024];
     }
 
     @Override
     public void run() {
         super.run();
-
         while (!isInterrupted()) {
             try {
                 Thread.sleep(500);
@@ -45,13 +37,12 @@ public abstract class SerialPortReadThread extends Thread {
                 if (mInputStream == null) return;
                 //inputStream.available()方法返回实际可读字节数，也就是总大小，同时时inputStream.read()方法不阻塞
                 if (mInputStream.available() == 0) continue;
-                byte[] buffers = new byte[mInputStream.available()];
+                byte[] buffers = new byte[50000];
                 while (mInputStream.available() > 0 && (value = mInputStream.read(buffers)) != 0x0d) {
                     byteArrayOutputStream.write(buffers, 0, value);
                 }
                 byte[] res = byteArrayOutputStream.toByteArray();
-                checkRules(res);
-//                onDataReceived(res);
+                onDataReceived(res);
                 byteArrayOutputStream.reset();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -60,31 +51,6 @@ public abstract class SerialPortReadThread extends Thread {
         }
     }
 
-
-    /**
-     * 检查接收数据是否合法，否则丢弃
-     *
-     * @param readBytes
-     */
-    private void checkRules(byte[] readBytes) {
-        if (sdk.getMsgHead() != null) {
-            //解析帧头
-            if (readBytes[0] == sdk.getMsgHead()[0] || readBytes[1] == sdk.getMsgHead()[1]) {
-                XLog.e("TAG", "成立");
-                for (int i = 4; i < readBytes.length; i++) {
-                    if (readBytes[i] == sdk.getMsgHead()[0] ||
-                            readBytes[i] == sdk.getMsgHead()[1]) {
-                        XLog.i("转码的数据" +bytesToHex(subByte(readBytes, i, readBytes.length / 2)));
-                        onDataReceived(subByte(readBytes, i, readBytes.length));
-                    }
-                }
-            } else {
-                XLog.e("TAG", "数据不合法丢弃");
-            }
-        } else {
-            onDataReceived(readBytes);
-        }
-    }
 
     @Override
     public synchronized void start() {
@@ -105,7 +71,11 @@ public abstract class SerialPortReadThread extends Thread {
                 e.printStackTrace();
             }
         }
-
+        try {
+            byteArrayOutputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

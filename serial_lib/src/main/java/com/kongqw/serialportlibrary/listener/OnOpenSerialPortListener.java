@@ -1,5 +1,8 @@
 package com.kongqw.serialportlibrary.listener;
 
+import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
+import com.kongqw.serialportlibrary.enumerate.SerialStatus;
+
 import java.io.File;
 
 /**
@@ -7,12 +10,6 @@ import java.io.File;
  */
 public interface OnOpenSerialPortListener {
 
-    void onSuccess(File device);
+    void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status);
 
-    void onFail(File device, Status status);
-
-    enum Status {
-        NO_READ_WRITE_PERMISSION,
-        OPEN_FAIL
-    }
 }

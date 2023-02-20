@@ -1,11 +1,16 @@
 package com.kongqw.serialportlibrary.listener;
 
 import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
+import com.kongqw.serialportlibrary.enumerate.SerialStatus;
+
+import java.io.File;
 
 /**
- * 串口消息监听
+ * name：cl
+ * date：2023/2/20
+ * desc：对外串口监听
  */
-public interface OnSerialPortDataListener {
+public interface SerialPortDirectorListens {
 
     /**
      * 数据接收
@@ -21,4 +26,9 @@ public interface OnSerialPortDataListener {
      */
     void onDataSent(byte[] bytes,SerialPortEnum serialPortEnum);
 
+
+    /**
+     * 打开串口监听
+     */
+    void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status);
 }
