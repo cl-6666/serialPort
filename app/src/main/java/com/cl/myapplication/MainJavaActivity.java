@@ -127,7 +127,6 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
             }
         });
 
-
         //多串口演示
         List<Driver> list2=new ArrayList<>();
         //串口ttyS4
