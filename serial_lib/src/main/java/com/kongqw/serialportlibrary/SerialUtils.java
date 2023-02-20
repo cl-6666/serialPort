@@ -255,17 +255,22 @@ public class SerialUtils implements OnOpenSerialPortListener, OnSerialPortDataLi
 
     @Override
     public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
-        mSerialPortDirectorListens.openState(serialPortEnum, device, status);
+        if (mSerialPortDirectorListens!=null){
+            mSerialPortDirectorListens.openState(serialPortEnum, device, status);
+        }
     }
 
     @Override
     public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
-        mSerialPortDirectorListens.onDataReceived(bytes, serialPortEnum);
-
+        if (mSerialPortDirectorListens!=null){
+            mSerialPortDirectorListens.onDataReceived(bytes, serialPortEnum);
+        }
     }
 
     @Override
     public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
-        mSerialPortDirectorListens.onDataSent(bytes, serialPortEnum);
+        if (mSerialPortDirectorListens!=null){
+            mSerialPortDirectorListens.onDataSent(bytes, serialPortEnum);
+        }
     }
 }

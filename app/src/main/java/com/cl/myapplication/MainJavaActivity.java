@@ -73,12 +73,6 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         initDevice();
         initSpinners();
 
-        //多串口演示
-//        List<Driver> list=new ArrayList<>();
-//        //串口ttyS4
-//        list.add(new Driver("/dev/ttyS4", "115200"));
-//        SerialUtils.getInstance().openSerialPortI(list);
-
         //串口数据监听
         SerialUtils.getInstance().setmSerialPortDirectorListens(new SerialPortDirectorListens() {
             @Override
@@ -132,6 +126,15 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
                 }
             }
         });
+
+
+        //多串口演示
+        List<Driver> list2=new ArrayList<>();
+        //串口ttyS4
+        list2.add(new Driver("/dev/ttyUSB0", "115200"));
+        list2.add(new Driver("/dev/ttyUSB1", "115200"));
+        list2.add(new Driver("/dev/ttyS4", "115200"));
+        SerialUtils.getInstance().manyOpenSerialPort(list2);
 
         binding.btnOpenDevice.setOnClickListener(v -> {
             if (mOpened) {
