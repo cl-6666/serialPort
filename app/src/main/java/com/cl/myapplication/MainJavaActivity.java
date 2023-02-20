@@ -202,6 +202,7 @@ public class MainJavaActivity extends AppCompatActivity implements OnOpenSerialP
 
         binding.spinnerDevices.setSelection(mDeviceIndex);
         binding.spinnerBaudrate.setSelection(mBaudrateIndex);
+
     }
 
 
