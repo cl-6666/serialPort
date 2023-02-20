@@ -154,7 +154,6 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         binding.btnSendData.setOnClickListener((view) -> {
             onSend();
         });
-
     }
 
     public static void verifyStoragePermissions(Activity activity) {
