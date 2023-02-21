@@ -6,7 +6,7 @@
 
 ------  
 # 下载体验  
-<img src="https://github.com/cl-6666/tbsAgent/blob/master/img/QRCode_420.png"><img/><br/>
+<img src="https://github.com/cl-6666/serialPort/blob/master/QRCode_336.png"><img/><br/>
 因为图方便，用手机浏览器扫码可下载
 
 
