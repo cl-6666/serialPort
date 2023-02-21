@@ -3,8 +3,7 @@
 
 # 效果图  
 <img src="https://github.com/cl-6666/serialPort/blob/master/sample_picture.png" width="650" height="360" alt="演示"/>  
-
-------  
+ 
 # 下载体验  
 <img src="https://github.com/cl-6666/serialPort/blob/master/QRCode_336.png"><img/><br/>
 因为图方便，用手机浏览器扫码可下载
