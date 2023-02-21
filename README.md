@@ -121,7 +121,7 @@ dependencies {
 	//多路串口打开逻辑.....
 ```
 
-## 打开多路串口，目前支持6路串口，使用的时候请在回调方法之后执行
+### 打开多路串口，目前支持6路串口，使用的时候请在回调方法之后执行
 
 ``` Java
         //多串口演示
@@ -145,7 +145,7 @@ dependencies {
         boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
 ```
 
-## 关闭串口
+### 关闭串口
 
 ``` Java
         SerialUtils.getInstance().serialPortClose();
@@ -156,14 +156,14 @@ dependencies {
 
 
 
-## 通用疑问解答  
+### 通用疑问解答  
 1.假如正常打开串口，但是收不到消息的话，请检查你的波特率  
 2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
 3.有好的建议或者问题欢迎提出
 
-## 感谢
+### 感谢
 - [AndroidSerialPort](https://github.com/kongqw/AndroidSerialPort)
 
-## 作者博客地址    
+### 作者博客地址    
 博客地址：https://blog.csdn.net/a214024475/article/details/113735085  
 
