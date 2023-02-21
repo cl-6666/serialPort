@@ -7,10 +7,10 @@
 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
 
-- v3.1.0：(2023年02月20日)
+- v3.1.3：(2023年02月21日)
   - 支持多串口接收和发送(目前sdk支持6路串口)
   - 避免分包接收，支持大量数据一次性接收
-  - 代码优化 
+  - 建议所有都升级到V3.1.3,使用上和V3.0.0有一点区别，V3.1.3使用更加简单
   
 - v3.0.0：(2021年10月20日)
   - 基于现有的串口框架增加调试助手，方便测试
@@ -41,155 +41,128 @@ Step 2. Add the dependency
 
 ``` Gradle
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:v3.0.0'
+    implementation 'com.github.cl-6666:serialPort:V3.1.3'
 }
 ```  
-### kotlin使用初始化  
-``` kotlin  
-   //构建初始化参数
-        val sdk = ConfigurationBuilder(device.file, 115200)   //串口号，波特率
-            .log("TAG", true, false)   //日志标识，是否开启sdk日志，是否开启日志堆栈信息显示
-//            .msgHead(b1)  明确协议头可以开启
-            .build()
-        mSerialPortManager = SerialPortManager.getInstance()
-        mSerialPortManager?.init(sdk, this)
 
-        // 打开串口
-        val openSerialPort = mSerialPortManager!!.setOnOpenSerialPortListener(this)
-            .setOnSerialPortDataListener(object : OnSerialPortDataListener {
-                override fun onDataReceived(bytes: ByteArray) {
-                    Log.i(
-                        TAG,
-                        "onDataReceived [ byte[] ]: " + Arrays.toString(bytes)
-                    )
-                    Log.i(
-                        TAG,
-                        "onDataReceived [ String ]: " + String(bytes)
-                    )
-                    runOnUiThread { showToast(String.format("接收\n%s", String(bytes))) }
+### 框架初始化，在Application里面
+
+``` Java
+   public class App extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // 初始化串口框架
+        SerialUtils.getInstance().init(this,true,"TAG");
+    }
+}
+```
+
+### 数据监听状态以及打开状况
+
+``` Java
+        SerialUtils.getInstance().setmSerialPortDirectorListens(new SerialPortDirectorListens() {
+            /**
+             *  接收回调
+             * @param bytes 接收到的数据
+             * @param serialPortEnum  串口类型
+             */
+            @Override
+            public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
+                Log.i(TAG, "当前接收串口类型：" + serialPortEnum.name());
+                Log.i(TAG, "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
+                Log.i(TAG, "onDataReceived [ String ]: " + new String(bytes));
+                if (mConversionNotice) {
+                    LogManager.instance().post(new RecvMessage(bytesToHex(bytes)));
+                } else {
+                    LogManager.instance().post(new RecvMessage(Arrays.toString(bytes)));
                 }
+            }
 
-                override fun onDataSent(bytes: ByteArray) {
-                    Log.i(
-                        TAG,
-                        "onDataSent [ byte[] ]: " + Arrays.toString(bytes)
-                    )
-                    Log.i(
-                        TAG,
-                        "onDataSent [ String ]: " + String(bytes)
-                    )
-                    runOnUiThread { showToast(String.format("发送\n%s", String(bytes))) }
+            /**
+             *  发送回调
+             * @param bytes 发送的数据
+             * @param serialPortEnum  串口类型
+             */
+            @Override
+            public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
+                Log.i(TAG, "当前发送串口类型：" + serialPortEnum.name());
+                Log.i(TAG, "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
+                Log.i(TAG, "onDataSent [ String ]: " + new String(bytes));
+                if (mConversionNotice) {
+                    LogManager.instance().post(new SendMessage(bytesToHex(bytes)));
+                } else {
+                    LogManager.instance().post(new SendMessage(Arrays.toString(bytes)));
                 }
-            })
+            }
 
-
+            /**
+             * 串口打开回调
+             * @param serialPortEnum  串口类型
+             * @param device  串口号
+             * @param status 打开状态
+             */
+            @Override
+            public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
+                XLog.i("串口打开状态："+device.getName()+"---打开状态："+status.name());
+                switch (serialPortEnum) {
+                    case SERIAL_ONE:
+                        switch (status) {
+                            case SUCCESS_OPENED:
+                                ToastUtils.show("串口打开成功");
+                                mOpened = true;
+                                updateViewState(true);
+                                break;
+                            case NO_READ_WRITE_PERMISSION:
+                                ToastUtils.show("没有读写权限");
+                                updateViewState(false);
+                                break;
+                            case OPEN_FAIL:
+                                ToastUtils.show("串口打开失败");
+                                updateViewState(false);
+                                break;
+                        }
+                        break;
+                    case SERIAL_TWO:
+                        XLog.i("根据实际多串口场景演示");
+                        break;
+                }
+            }
+        });
+	
+	//多路串口打开逻辑.....
 ```
 
-### 查看串口
+## 打开多路串口，目前支持6路串口，使用的时候请在回调方法下面执行
 
 ``` Java
-SerialPortFinder serialPortFinder = new SerialPortFinder();
-ArrayList<Device> devices = serialPortFinder.getDevices();
-```
-
-### java使用初始化
-
-``` Java
-      //构建初始化参数
-        ConfigurationSdk sdk = new ConfigurationSdk.ConfigurationBuilder(device.getFile(), 115200)
-                .log("TAG", true, false)
-//                .msgHead(b1)   打开说明需要效验
-                .build();
-        mSerialPortManager = SerialPortManager.getInstance();
-        mSerialPortManager.init(sdk, this);
-
-        // 打开串口
-        SerialPortManager.getInstance().setOnOpenSerialPortListener(this)
-                .setOnSerialPortDataListener(new OnSerialPortDataListener() {
-                    @Override
-                    public void onDataReceived(byte[] bytes) {
-                        Log.i(TAG, "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
-                        Log.i(TAG, "onDataReceived [ String ]: " + new String(bytes));
-                        final byte[] finalBytes = bytes;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                showToast(String.format("接收\n%s", new String(finalBytes)));
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onDataSent(byte[] bytes) {
-                        Log.i(TAG, "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
-                        Log.i(TAG, "onDataSent [ String ]: " + new String(bytes));
-                        final byte[] finalBytes = bytes;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                showToast(String.format("发送\n%s", new String(finalBytes)));
-                            }
-                        });
-                    }
-                });
+        //多串口演示
+        List<Driver> list2=new ArrayList<>();
+        //串口ttyS4
+        list2.add(new Driver("/dev/ttyUSB0", "115200"));
+        list2.add(new Driver("/dev/ttyUSB1", "115200"));
+        list2.add(new Driver("/dev/ttyS4", "115200"));
+        SerialUtils.getInstance().manyOpenSerialPort(list2);
 
 ```
 
-### 添加打开串口监听
-
-``` Java
-mSerialPortManager.setOnOpenSerialPortListener(new OnOpenSerialPortListener() {
-    @Override
-    public void onSuccess(File device) {
-        
-    }
-
-    @Override
-    public void onFail(File device, Status status) {
-
-    }
-});
-```
-
-### 添加数据通信监听
-
-``` Java
-mSerialPortManager.setOnSerialPortDataListener(new OnSerialPortDataListener() {
-    @Override
-    public void onDataReceived(byte[] bytes) {
-        
-    }
-
-    @Override
-    public void onDataSent(byte[] bytes) {
-
-    }
-});
-```
-
-### 打开串口
-
-- 参数1：串口
-- 参数2：波特率
-- 返回：串口打开是否成功
-
-``` Java
-    mSerialPortManager.init(sdk, this);
-```
 
 ### 发送数据
 
-- 参数：发送数据 byte[]
+- 参数：发送哪路串口，发送数据 byte[]
 - 返回：发送是否成功
 
 ``` Java
-boolean sendBytes = mSerialPortManager.sendBytes(sendContentBytes);
+        //todo 这里默认发送一路串口，根据用户自定义
+        boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
 ```
 
 ## 关闭串口
 
 ``` Java
-mSerialPortManager.closeSerialPort();
+        SerialUtils.getInstance().serialPortClose();
+
 ```
 
 > PS：传输协议需自行封装  
