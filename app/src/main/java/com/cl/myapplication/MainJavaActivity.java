@@ -75,6 +75,11 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
 
         //串口数据监听
         SerialUtils.getInstance().setmSerialPortDirectorListens(new SerialPortDirectorListens() {
+            /**
+             *  接收回调
+             * @param bytes 接收到的数据
+             * @param serialPortEnum  串口类型
+             */
             @Override
             public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
                 Log.i(TAG, "当前接收串口类型：" + serialPortEnum.name());
@@ -87,6 +92,11 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
                 }
             }
 
+            /**
+             *  发送回调
+             * @param bytes 发送的数据
+             * @param serialPortEnum  串口类型
+             */
             @Override
             public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
                 Log.i(TAG, "当前发送串口类型：" + serialPortEnum.name());
@@ -99,6 +109,12 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
                 }
             }
 
+            /**
+             * 串口打开回调
+             * @param serialPortEnum  串口类型
+             * @param device  串口号
+             * @param status 打开状态
+             */
             @Override
             public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
                 XLog.i("串口打开状态："+device.getName()+"---打开状态："+status.name());
@@ -127,13 +143,13 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
             }
         });
 
-        //多串口演示
+/*        //多串口演示
         List<Driver> list2=new ArrayList<>();
         //串口ttyS4
         list2.add(new Driver("/dev/ttyUSB0", "115200"));
         list2.add(new Driver("/dev/ttyUSB1", "115200"));
         list2.add(new Driver("/dev/ttyS4", "115200"));
-        SerialUtils.getInstance().manyOpenSerialPort(list2);
+        SerialUtils.getInstance().manyOpenSerialPort(list2);*/
 
         binding.btnOpenDevice.setOnClickListener(v -> {
             if (mOpened) {
