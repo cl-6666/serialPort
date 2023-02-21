@@ -47,6 +47,7 @@ dependencies {
 
 ### 框架初始化，在Application里面
 
+- 参数：上下文，是否打开日志，日志标签  
 ``` Java
    public class App extends Application {
 
@@ -73,11 +74,6 @@ dependencies {
                 Log.i(TAG, "当前接收串口类型：" + serialPortEnum.name());
                 Log.i(TAG, "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
                 Log.i(TAG, "onDataReceived [ String ]: " + new String(bytes));
-                if (mConversionNotice) {
-                    LogManager.instance().post(new RecvMessage(bytesToHex(bytes)));
-                } else {
-                    LogManager.instance().post(new RecvMessage(Arrays.toString(bytes)));
-                }
             }
 
             /**
@@ -90,11 +86,6 @@ dependencies {
                 Log.i(TAG, "当前发送串口类型：" + serialPortEnum.name());
                 Log.i(TAG, "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
                 Log.i(TAG, "onDataSent [ String ]: " + new String(bytes));
-                if (mConversionNotice) {
-                    LogManager.instance().post(new SendMessage(bytesToHex(bytes)));
-                } else {
-                    LogManager.instance().post(new SendMessage(Arrays.toString(bytes)));
-                }
             }
 
             /**
@@ -111,16 +102,12 @@ dependencies {
                         switch (status) {
                             case SUCCESS_OPENED:
                                 ToastUtils.show("串口打开成功");
-                                mOpened = true;
-                                updateViewState(true);
                                 break;
                             case NO_READ_WRITE_PERMISSION:
                                 ToastUtils.show("没有读写权限");
-                                updateViewState(false);
                                 break;
                             case OPEN_FAIL:
                                 ToastUtils.show("串口打开失败");
-                                updateViewState(false);
                                 break;
                         }
                         break;
