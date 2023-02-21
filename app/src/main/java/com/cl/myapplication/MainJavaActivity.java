@@ -72,7 +72,6 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         initFragment();
         initDevice();
         initSpinners();
-
         //串口数据监听
         SerialUtils.getInstance().setmSerialPortDirectorListens(new SerialPortDirectorListens() {
             /**
