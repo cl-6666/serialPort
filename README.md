@@ -146,14 +146,14 @@ dependencies {
 - 返回：发送是否成功
 
 ``` Java
-        //todo 这里默认发送一路串口，根据用户自定义
-        boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
+//todo 这里默认发送一路串口，根据用户自定义
+boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
 ```
 
 ### 关闭串口
 
 ``` Java
-        SerialUtils.getInstance().serialPortClose();
+SerialUtils.getInstance().serialPortClose();
 
 ```
 
