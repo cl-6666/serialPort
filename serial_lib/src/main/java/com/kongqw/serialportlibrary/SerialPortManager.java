@@ -43,7 +43,7 @@ public class SerialPortManager extends SerialPort {
      * 打开串口
      *
      * @param devicePath 串口号
-     * @param baudRate 波特率
+     * @param baudRate   波特率
      */
     public boolean openSerialPort(String devicePath, int baudRate) {
         closeSerialPort();
@@ -159,7 +159,7 @@ public class SerialPortManager extends SerialPort {
      */
     private void startSendThread() {
         // 开启发送消息的线程
-        mSendingHandlerThread = new HandlerThread("mSendingHandlerThread");
+        mSendingHandlerThread = new HandlerThread("mSendingHandlerThread" + mSerialPortEnum.name());
         mSendingHandlerThread.start();
         // Handler
         mSendingHandler = new Handler(mSendingHandlerThread.getLooper()) {
