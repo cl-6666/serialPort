@@ -12,6 +12,10 @@
 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
 
+- v3.1.6：(2023年10月26日)
+  - 增加对外日志参数配置，也支持默认配置
+  - 增加对外串口读写速度参数设置
+
 - v3.1.3：(2023年02月21日)
   - 支持多串口接收和发送(目前sdk支持6路串口)
   - 避免分包接收，支持大量数据一次性接收
@@ -46,7 +50,7 @@ Step 2. Add the dependency
 
 ``` Gradle
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:V3.1.3'
+    implementation 'com.github.cl-6666:serialPort:v3.1.6'
 }
 ```  
 
@@ -59,12 +63,51 @@ dependencies {
     @Override
     public void onCreate() {
         super.onCreate();
-        // 初始化串口框架
-        SerialUtils.getInstance().init(this,true,"TAG");
+        /**
+         * 初始化串口框架  简单配置  
+         * 是否打开日志、日志标识、串口接发间隔速度 
+         * 数据量单一情况下建议设置100  数据量大情况建议设置500
+         */
+       SerialUtils.getInstance().init(this,true,"TAG",100);
     }
 }
 ```
 
+- 需要详细配置日志等参数，建议使用这个 
+``` Java
+   public class App extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+             //初始化日志框架
+        XLogConfig logConfig = new XLogConfig.Builder()
+                //全局TAG
+                .setGlobalTag("TAG")
+                //是否包含线程信息
+                .setWhetherThread(true)
+                //Xlog是否可用
+                .setWhetherToPrint(true)
+                //是否存储日志到本地  log文件的有效时长，单位毫秒，<=0表示一直有效
+                .setStoreLog(true, 0)
+                //堆栈的深度
+                .setStackDeep(5)
+                .setInjectSequence(new XLogConfig.JsonParser() {
+                    @Override
+                    public String toJson(Object src) {
+                        String json = new Gson().toJson(src);
+                        return json;
+                    }
+                }).build();
+
+        SerialConfig serialConfig = new SerialConfig.Builder()
+                .setXLogConfig(logConfig)
+                .setIntervalSleep(200)
+                .build();
+        SerialUtils.getInstance().init(this, serialConfig);
+    }
+}
+```
 ### 数据监听状态以及打开状况
 
 ``` Java
