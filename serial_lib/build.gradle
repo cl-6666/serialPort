@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 316
-        versionName "3.1.6"
+        versionCode 317
+        versionName "3.1.7"
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_TOOLCHAIN=clang'
@@ -49,7 +49,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    api 'com.github.cl-6666:xlog:V2.0.0'
+    api 'com.github.cl-6666:xlog:v3.0.0'
     testImplementation 'junit:junit:4.12'
 }
 

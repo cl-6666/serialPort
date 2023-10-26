@@ -1,5 +1,8 @@
 package com.kongqw.serialportlibrary.thread;
 
+import com.cl.log.XLog;
+import com.kongqw.serialportlibrary.SerialUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +31,7 @@ public abstract class SerialPortReadThread extends Thread {
         super.run();
         while (!isInterrupted()) {
             try {
-                Thread.sleep(500);
+                Thread.sleep(SerialUtils.getInstance().getmSerialConfig().getIntervalSleep());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
