@@ -80,7 +80,7 @@ dependencies {
     @Override
     public void onCreate() {
         super.onCreate();
-             //初始化日志框架
+        //初始化日志框架
         XLogConfig logConfig = new XLogConfig.Builder()
                 //全局TAG
                 .setGlobalTag("TAG")
@@ -92,6 +92,7 @@ dependencies {
                 .setStoreLog(true, 0)
                 //堆栈的深度
                 .setStackDeep(5)
+                //外界注入对象的序列化
                 .setInjectSequence(new XLogConfig.JsonParser() {
                     @Override
                     public String toJson(Object src) {
@@ -99,10 +100,14 @@ dependencies {
                         return json;
                     }
                 }).build();
-
+        //配置串口相关参数
         SerialConfig serialConfig = new SerialConfig.Builder()
+                //配置日志参数
                 .setXLogConfig(logConfig)
+                //配置发送间隔速度
                 .setIntervalSleep(200)
+                //是否开启串口重连   目前还没有实现
+                .setSerialPortReconnection(false)
                 .build();
         SerialUtils.getInstance().init(this, serialConfig);
     }
