@@ -73,7 +73,7 @@ dependencies {
 }
 ```
 
-- 需要详细配置日志等参数，建议使用这个 
+- 假如需要详细配置日志参数，可以使用以下方法，日志框架地址：https://github.com/cl-6666/xlog
 ``` Java
    public class App extends Application {
 
