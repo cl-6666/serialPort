@@ -12,7 +12,7 @@
 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
 
-- v3.1.6：(2023年10月26日)
+- v3.1.7：(2023年11月09日)
   - 增加对外日志参数配置，也支持默认配置
   - 增加对外串口读写速度参数设置
 
@@ -50,7 +50,7 @@ Step 2. Add the dependency
 
 ``` Gradle
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:v3.1.6'
+    implementation 'com.github.cl-6666:serialPort:v3.1.7'
 }
 ```  
 
@@ -192,6 +192,17 @@ SerialUtils.getInstance().serialPortClose();
 ### 通用疑问解答  
 1.假如正常打开串口，但是收不到消息的话，请检查你的波特率  
 2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
+3.在grdle8.x依赖不了问题,依赖方式有所改变    
+``` java
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```  
 3.有好的建议或者问题欢迎提出
 
 ### 感谢
