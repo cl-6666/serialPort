@@ -1,11 +1,8 @@
 package com.kongqw.serialportlibrary;
 
 import android.app.Application;
-import android.os.Handler;
-import android.os.Looper;
 
 import com.cl.log.XConsolePrinter;
-import com.cl.log.XFilePrinter;
 import com.cl.log.XLog;
 import com.cl.log.XLogConfig;
 import com.cl.log.XLogManager;
@@ -47,9 +44,7 @@ public class SerialUtils implements OnOpenSerialPortListener, OnSerialPortDataLi
 
     //串口监听
     private SerialPortDirectorListens mSerialPortDirectorListens;
-
-
-    private static final Handler HANDLER = new Handler(Looper.getMainLooper());
+    private SerialConfig mSerialConfig;
 
 
     private SerialUtils() {
@@ -64,46 +59,49 @@ public class SerialUtils implements OnOpenSerialPortListener, OnSerialPortDataLi
         return SerialUtilsInstance.INSTANCE;
     }
 
+    public SerialConfig getmSerialConfig() {
+        return mSerialConfig;
+    }
+
+    /**
+     * 新初始化方法，需要在 Application.create 中初始化
+     *
+     * @param application  应用的上下文
+     * @param serialConfig 需要配置的参数
+     */
+    public void init(Application application, SerialConfig serialConfig) {
+        sApplication = application;
+        mSerialConfig = serialConfig;
+        if (serialConfig.getxLogConfig() == null) {
+            initLog(true, "SerialUtils");
+        } else {
+            XLogManager.getInstance().init(serialConfig.getxLogConfig(), new XConsolePrinter());
+        }
+    }
+
 
     /**
      * 初始化 串口框架，需要在 Application.create 中初始化
      *
      * @param application 应用的上下文
      */
-    public void init(Application application, boolean logSwitch, String logLabel) {
+    public void init(Application application, boolean logSwitch, String logLabel,int sleep) {
         sApplication = application;
+        //默认设置读写速度100
+        mSerialConfig = new SerialConfig(new SerialConfig.Builder().setIntervalSleep(sleep));
         initLog(logSwitch, logLabel);
     }
 
 
     public void initLog(final boolean logSwitch, final String logLabel) {
-        XLogManager.init(new XLogConfig() {
-            @Override
-            public String getGlobalTag() {
-                return logLabel;
-            }
-
-            @Override
-            public boolean enable() {
-                return logSwitch;
-            }
-
-            @Override
-            public JsonParser injectJsonParser() {
-                //TODO 根据需求自行添加
-                return super.injectJsonParser();
-            }
-
-            @Override
-            public boolean includeThread() {
-                return false;
-            }
-
-            @Override
-            public int stackTraceDepth() {
-                return 5;
-            }
-        }, new XConsolePrinter(), XFilePrinter.getInstance(sApplication.getCacheDir().getAbsolutePath(), 0));
+        //初始化日志框架
+        XLogConfig logConfig = new XLogConfig.Builder()
+                //全局TAG
+                .setGlobalTag(logLabel)
+                //Xlog是否可用
+                .setWhetherToPrint(logSwitch)
+                .build();
+        XLogManager.getInstance().init(logConfig, new XConsolePrinter());
     }
 
 
@@ -208,42 +206,42 @@ public class SerialUtils implements OnOpenSerialPortListener, OnSerialPortDataLi
                 if (serialPortManager1 != null) {
                     return serialPortManager1.sendBytes(sendBytes);
                 } else {
-                    XLog.i("请检测当前类型是否初始化--"+serialPortEnum.name());
+                    XLog.i("请检测当前类型是否初始化--" + serialPortEnum.name());
                     return false;
                 }
             case SERIAL_TWO:
                 if (serialPortManager2 != null) {
                     return serialPortManager2.sendBytes(sendBytes);
                 } else {
-                    XLog.i("请检测当前类型是否初始化--"+serialPortEnum.name());
+                    XLog.i("请检测当前类型是否初始化--" + serialPortEnum.name());
                     return false;
                 }
             case SERIAL_THREE:
                 if (serialPortManager3 != null) {
                     return serialPortManager3.sendBytes(sendBytes);
                 } else {
-                    XLog.i("请检测当前类型是否初始化--"+serialPortEnum.name());
+                    XLog.i("请检测当前类型是否初始化--" + serialPortEnum.name());
                     return false;
                 }
             case SERIAL_FOUR:
                 if (serialPortManager4 != null) {
                     return serialPortManager4.sendBytes(sendBytes);
                 } else {
-                    XLog.i("请检测当前类型是否初始化--"+serialPortEnum.name());
+                    XLog.i("请检测当前类型是否初始化--" + serialPortEnum.name());
                     return false;
                 }
             case SERIAL_FIVE:
                 if (serialPortManager5 != null) {
                     return serialPortManager5.sendBytes(sendBytes);
                 } else {
-                    XLog.i("请检测当前类型是否初始化--"+serialPortEnum.name());
+                    XLog.i("请检测当前类型是否初始化--" + serialPortEnum.name());
                     return false;
                 }
             case SERIAL_SIX:
                 if (serialPortManager6 != null) {
                     return serialPortManager6.sendBytes(sendBytes);
                 } else {
-                    XLog.i("请检测当前类型是否初始化--"+serialPortEnum.name());
+                    XLog.i("请检测当前类型是否初始化--" + serialPortEnum.name());
                     return false;
                 }
             default:
@@ -255,21 +253,21 @@ public class SerialUtils implements OnOpenSerialPortListener, OnSerialPortDataLi
 
     @Override
     public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
-        if (mSerialPortDirectorListens!=null){
+        if (mSerialPortDirectorListens != null) {
             mSerialPortDirectorListens.openState(serialPortEnum, device, status);
         }
     }
 
     @Override
     public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
-        if (mSerialPortDirectorListens!=null){
+        if (mSerialPortDirectorListens != null) {
             mSerialPortDirectorListens.onDataReceived(bytes, serialPortEnum);
         }
     }
 
     @Override
     public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
-        if (mSerialPortDirectorListens!=null){
+        if (mSerialPortDirectorListens != null) {
             mSerialPortDirectorListens.onDataSent(bytes, serialPortEnum);
         }
     }

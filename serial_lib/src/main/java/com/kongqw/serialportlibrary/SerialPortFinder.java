@@ -2,6 +2,8 @@ package com.kongqw.serialportlibrary;
 
 import android.util.Log;
 
+import com.cl.log.XLog;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,7 +21,7 @@ public class SerialPortFinder {
     public SerialPortFinder() {
         File file = new File(DRIVERS_PATH);
         boolean b = file.canRead();
-        Log.i(TAG, "SerialPortFinder: file.canRead() = " + b);
+        XLog.i(TAG, "SerialPortFinder: file.canRead() = " + b);
     }
 
     /**
@@ -36,7 +38,7 @@ public class SerialPortFinder {
             String driverName = readLine.substring(0, 0x15).trim();
             String[] fields = readLine.split(" +");
             if ((fields.length >= 5) && (fields[fields.length - 1].equals(SERIAL_FIELD))) {
-                Log.d(TAG, "Found new driver " + driverName + " on " + fields[fields.length - 4]);
+                XLog.d(TAG, "Found new driver " + driverName + " on " + fields[fields.length - 4]);
                 drivers.add(new Driver(driverName, fields[fields.length - 4]));
             }
         }
