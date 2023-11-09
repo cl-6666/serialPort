@@ -49,5 +49,6 @@ public class App extends Application {
 //                .setIntervalSleep(200)
 //                .build();
 //        SerialUtils.getInstance().init(this, serialConfig);
+
     }
 }
