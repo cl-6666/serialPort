@@ -192,7 +192,8 @@ SerialUtils.getInstance().serialPortClose();
 ### 通用疑问解答  
 1.假如正常打开串口，但是收不到消息的话，请检查你的波特率  
 2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
-3.在grdle8.x依赖不了问题,依赖方式有所改变    
+3.假如能接收到数据，但出现接收数据不完整，请检查波特率是否对的，然后修改一下数据接收的间隔时间  
+4.在grdle8.x依赖不了问题,依赖方式有所改变    
 ``` java
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -203,7 +204,7 @@ dependencyResolutionManagement {
     }
 }
 ```  
-3.有好的建议或者问题欢迎提出
+5.有好的建议或者问题欢迎提出
 
 ### 感谢
 - [AndroidSerialPort](https://github.com/kongqw/AndroidSerialPort)
