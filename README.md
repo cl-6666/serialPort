@@ -207,7 +207,7 @@ dependencyResolutionManagement {
 5.有好的建议或者问题欢迎提出
 
 #### QQ 群：458173716  
-<img src="https://github.com/cl-6666/serialPort/blob/master/qq.jpg" width="350" height="560" alt="演示"/>  
+<img src="https://github.com/cl-6666/serialPort/blob/master/qq2.jpg" width="350" height="560" alt="演示"/>  
 
 ### 感谢
 - [AndroidSerialPort](https://github.com/kongqw/AndroidSerialPort)
