@@ -14,7 +14,7 @@ extern "C" {
  * Signature: (Ljava/lang/String;II)Ljava/io/FileDescriptor;
  */
 JNIEXPORT jobject JNICALL Java_com_kongqw_serialportlibrary_SerialPort_open
-  (JNIEnv *, jclass, jstring, jint, jint);
+  (JNIEnv *, jclass, jstring, jint, jint,jint,jint,jint);
 
 /*
  * Class:     android_serialport_api_SerialPort

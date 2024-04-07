@@ -9,5 +9,8 @@
     <string name="send_data">发送命令</string>
     <string name="input_data">输入命令</string>
     <string name="load_cmd_list">加载命令列表</string>
+    <string name="title_data_bits">数据位:</string>
+    <string name="title_parity">校验位:</string>
+    <string name="title_stop_bits">停止位:</string>
 
 </resources>

@@ -13,8 +13,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.cl.log.XLog;
+import com.cl.myapplication.adapter.SpAdapter;
 import com.cl.myapplication.constant.PreferenceKeys;
 import com.cl.myapplication.databinding.ActivityMainJavaBinding;
 import com.cl.myapplication.fragment.LogFragment;
@@ -44,7 +46,6 @@ import java.util.List;
 
 public class MainJavaActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
-    private static final String TAG = MainJavaActivity.class.getSimpleName();
     private ActivityMainJavaBinding binding;
     private Device mDevice;
     private byte[] b1 = {(byte) 33, (byte) -3};
@@ -58,6 +59,10 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
     private boolean mOpened = false;
     private boolean mConversionNotice = true;
     private LogFragment mLogFragment;
+
+    final String[] databits = new String[]{"8", "7", "6", "5"};
+    final String[] paritys = new String[]{"NONE", "ODD", "EVEN", "SPACE", "MARK"};
+    final String[] stopbits = new String[]{"1", "2"};
 
     //先定义
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -84,9 +89,9 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
              */
             @Override
             public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
-                Log.i(TAG, "当前接收串口类型：" + serialPortEnum.name());
-                Log.i(TAG, "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
-                Log.i(TAG, "onDataReceived [ String ]: " + new String(bytes));
+                XLog.i( "当前接收串口类型：" + serialPortEnum.name());
+                XLog.i( "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
+                XLog.i("onDataReceived [ String ]: " + new String(bytes));
                 if (mConversionNotice) {
                     LogManager.instance().post(new RecvMessage(bytesToHex(bytes)));
                 } else {
@@ -101,9 +106,9 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
              */
             @Override
             public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
-                Log.i(TAG, "当前发送串口类型：" + serialPortEnum.name());
-                Log.i(TAG, "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
-                Log.i(TAG, "onDataSent [ String ]: " + new String(bytes));
+                XLog.i( "当前发送串口类型：" + serialPortEnum.name());
+                XLog.i( "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
+                XLog.i( "onDataSent [ String ]: " + new String(bytes));
                 if (mConversionNotice) {
                     LogManager.instance().post(new SendMessage(bytesToHex(bytes)));
                 } else {
@@ -119,7 +124,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
              */
             @Override
             public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
-                XLog.i("串口打开状态："+device.getName()+"---打开状态："+status.name());
+                XLog.i("TAG","串口打开状态："+device.getName()+"---打开状态："+status.name());
                 switch (serialPortEnum) {
                     case SERIAL_ONE:
                         switch (status) {
@@ -145,13 +150,77 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
             }
         });
 
+        //设置数据位
+        SpAdapter spAdapter1 = new SpAdapter(this);
+        spAdapter1.setDatas(databits);
+        binding.spDatabits.setAdapter(spAdapter1);
+        binding.spDatabits.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateViewState(false);
+                SerialUtils.getInstance().serialPortClose();
+                SerialUtils.getInstance().getmSerialConfig().setDatabits(Integer.parseInt(databits[position]));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //设置数据位
+        SpAdapter spAdapter2 = new SpAdapter(this);
+        spAdapter2.setDatas(paritys);
+        binding.spParity.setAdapter(spAdapter2);
+        binding.spParity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateViewState(false);
+                SerialUtils.getInstance().serialPortClose();
+                if (position == 0) {
+                    SerialUtils.getInstance().getmSerialConfig().setParity(0);
+                } else if (position == 1) {
+                    SerialUtils.getInstance().getmSerialConfig().setParity(1);
+                } else if (position == 2) {
+                    SerialUtils.getInstance().getmSerialConfig().setParity(2);
+                } else if (position == 3) {
+                    SerialUtils.getInstance().getmSerialConfig().setParity(3);
+                } else if (position == 4) {
+                    SerialUtils.getInstance().getmSerialConfig().setParity(4);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //设置停止位
+        SpAdapter spAdapter3 = new SpAdapter(this);
+        spAdapter3.setDatas(stopbits);
+        binding.spStopbits.setAdapter(spAdapter3);
+        binding.spStopbits.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateViewState(false);
+                SerialUtils.getInstance().serialPortClose();
+                SerialUtils.getInstance().getmSerialConfig().setStopbits(Integer.parseInt(stopbits[position]));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         //多串口演示
-        List<Driver> list2=new ArrayList<>();
-        //串口ttyS4
-        list2.add(new Driver("/dev/ttyS4", "115200"));
-        list2.add(new Driver("/dev/ttyS2", "115200"));
+//        List<Driver> list2=new ArrayList<>();
+//        //串口ttyS4
 //        list2.add(new Driver("/dev/ttyS4", "115200"));
-        SerialUtils.getInstance().manyOpenSerialPort(list2);
+//        list2.add(new Driver("/dev/ttyS2", "115200"));
+////        list2.add(new Driver("/dev/ttyS4", "115200"));
+//        SerialUtils.getInstance().manyOpenSerialPort(list2);
 
 
 
@@ -165,7 +234,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
                 list.clear();
                 list.add(new Driver(mDevice.getName(), mDevice.getRoot()));
                 // 打开串口
-                XLog.i(TAG, "打开的串口为：" + mDevice.getName() + "----" + Integer.parseInt(mDevice.getRoot()));
+                XLog.i( "打开的串口为：" + mDevice.getName() + "----" + Integer.parseInt(mDevice.getRoot()));
                 SerialUtils.getInstance().manyOpenSerialPort(list);
             }
             updateViewState(mOpened);
@@ -256,13 +325,13 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
     public void onSend() {
         String sendContent = binding.etData.getText().toString().trim();
         if (TextUtils.isEmpty(sendContent)) {
-            Log.i(TAG, "onSend: 发送内容为 null");
+            XLog.i( "onSend: 发送内容为 null");
             return;
         }
         byte[] sendContentBytes = sendContent.getBytes();
         //todo 这里默认发送一路串口，根据用户自定义
         boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
-        Log.i(TAG, "onSend: sendBytes = " + sendBytes);
+        XLog.i( "onSend: sendBytes = " + sendBytes);
 
     }
 
