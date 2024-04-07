@@ -118,6 +118,8 @@ dependencies {
   SerialUtils.getInstance().getmSerialConfig().setFlags();
    //设置串口接收间隔时间
   SerialUtils.getInstance().getmSerialConfig().setIntervalSleep();
+  //自定义粘包处理类，下面有介绍说明
+  SerialUtils.getInstance().setStickPackageHelper("自定义粘包处理类");
 ```
 
 ### 数据监听状态以及打开状况
