@@ -27,6 +27,10 @@ MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9
 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
 
+- v4.0.0：(2024年04月06日)
+  - 增加对外设置停止位、数据位、校验位、流控等参数
+  - 代码优化
+
 - v3.1.7：(2023年11月09日)
   - 增加对外日志参数配置，也支持默认配置
   - 增加对外串口读写速度参数设置
@@ -68,8 +72,16 @@ dependencies {
     implementation 'com.github.cl-6666:serialPort:v3.1.7'
 }
 ```  
+### 属性支持
+|	属性	|	参数	|
+|	---		|	---		|
+|	数据位	|	5,6,7,8 ;默认值8	|
+|	校验位	|	无奇偶校验(NONE), 奇校验(ODD), 偶校验(EVEN), 0校验(SPACE), 1校验(MARK); 默认无奇偶校验，对应关系NONE(0)-ODD(1)-EVEN(2)-SPACE(3)-MARK(4);	|
+|	停止位		|	1,2 ;默认值1	|
+|	标志位	|	不使用流控(NONE), 硬件流控(RTS/CTS), 软件流控(XON/XOFF); 默认不使用流控	|
 
-### 框架初始化，在Application里面
+  
+### 框架初始化，在Application里面,支持动态配置
 
 - 参数：上下文，是否打开日志，日志标签  
 ``` Java
@@ -84,6 +96,12 @@ dependencies {
          * 数据量单一情况下建议设置100  数据量大情况建议设置500
          */
        SerialUtils.getInstance().init(this,true,"TAG",100);
+     
+         /**
+         * 设置停止位、数据位、校验位
+         */
+        SerialUtils.getInstance().init(this,true,"TAG",
+                50,8,0,1);
     }
 }
 ```
@@ -103,11 +121,33 @@ dependencies {
                 .setIntervalSleep(200)
                 //是否开启串口重连   目前还没有实现
                 .setSerialPortReconnection(false)
+                //标志位
+                .setFlags(0)
+                 //数据位
+                .setDatabits(8)
+                 //停止位
+                .setStopbits(1)
+                 //校验位：0 表示无校验位，1 表示奇校验，2 表示偶校验
+                .setParity(0)
                 .build();
         SerialUtils.getInstance().init(this, serialConfig);
     }
 }
 ```
+- 业务代码设置参数
+``` Java
+   //设置数据位
+  SerialUtils.getInstance().getmSerialConfig().setDatabits();
+   //设置停止位
+  SerialUtils.getInstance().getmSerialConfig().setStopbits();
+   //校验位：0 表示无校验位，1 表示奇校验，2 表示偶校验
+  SerialUtils.getInstance().getmSerialConfig().setParity();
+   //标志位
+  SerialUtils.getInstance().getmSerialConfig().setFlags();
+   //设置串口接收间隔时间
+  SerialUtils.getInstance().getmSerialConfig().setIntervalSleep();
+```
+
 ### 数据监听状态以及打开状况
 
 ``` Java
@@ -200,8 +240,12 @@ SerialUtils.getInstance().serialPortClose();
 
 ```
 
-> PS：传输协议需自行封装  
-
+### 粘包处理
+1. [不处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/BaseStickPackageHelper.java)(默认)
+2. [首尾特殊字符处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/SpecifiedStickPackageHelper.java)
+3. [固定长度处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/StaticLenStickPackageHelper.java)
+4. [动态长度处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/VariableLenStickPackageHelper.java)
+支持自定义粘包处理，第一步实现[AbsStickPackageHelper](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/AbsStickPackageHelper.java)接口
 
 
 ### 通用疑问解答  
