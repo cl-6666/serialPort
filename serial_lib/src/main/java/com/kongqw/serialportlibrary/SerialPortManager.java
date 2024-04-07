@@ -234,4 +234,5 @@ public class SerialPortManager extends SerialPort {
         }
         return false;
     }
+
 }
