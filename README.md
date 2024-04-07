@@ -1,5 +1,20 @@
+```
+                                      ___ ________                            
+                         68b          `MM `MMMMMMMb.                          
+                         Y89           MM  MM    `Mb                    /     
+  ____     ____  ___  __ ___    ___    MM  MM     MM   _____  ___  __  /M     
+ 6MMMMb\  6MMMMb `MM 6MM `MM  6MMMMb   MM  MM     MM  6MMMMMb `MM 6MM /MMMMM  
+MM'    ` 6M'  `Mb MM69 "  MM 8M'  `Mb  MM  MM    .M9 6M'   `Mb MM69 "  MM     
+YM.      MM    MM MM'     MM     ,oMM  MM  MMMMMMM9' MM     MM MM'     MM     
+ YMMMMb  MMMMMMMM MM      MM ,6MM9'MM  MM  MM        MM     MM MM      MM     
+     `Mb MM       MM      MM MM'   MM  MM  MM        MM     MM MM      MM     
+L    ,MM YM    d9 MM      MM MM.  ,MM  MM  MM        YM.   ,M9 MM      YM.  , 
+MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9                        
+
+```  
+
 # 说明  
->串口通信是软件和硬件通信经常用到的东西，我在这里开源一个我自己平常也在用的串口库，大家在使用遇到问题了欢迎指出，我会第一时间修复，强烈建议以依赖的方式导入，这样避免代码同步。
+>一个灵活、高效的串口通信框架，让串口操作变得简单易用，大家在使用遇到问题了欢迎指出，我会第一时间修复，强烈建议以依赖的方式导入，这样避免代码同步，有问题或建议？请通过博客、qq群联系我们。
 
 # 效果图  
 <img src="https://github.com/cl-6666/serialPort/blob/master/sample_picture.png" width="650" height="360" alt="演示"/>  
