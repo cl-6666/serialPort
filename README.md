@@ -17,10 +17,10 @@ MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9
 >一个灵活、高效的串口通信框架，让串口操作变得简单易用，大家在使用遇到问题了欢迎指出，我会第一时间修复，强烈建议以依赖的方式导入，这样避免代码同步，有问题或建议？请通过博客、qq群联系我们。
 
 # 效果图  
-<img src="https://github.com/cl-6666/serialPort/blob/master/sample_picture.png" width="650" height="360" alt="演示"/>  
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/sample_picture.png" width="650" height="360" alt="演示"/>  
  
 # 下载体验  
-<img src="https://github.com/cl-6666/serialPort/blob/master/QRCode_336.png"><img/><br/>
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/QRCode_336.png"><img/><br/>
 因为图方便，用手机浏览器扫码可下载
 
 # 项目依赖
@@ -209,11 +209,11 @@ SerialUtils.getInstance().serialPortClose();
 ```
 
 ### 粘包处理
-1. [不处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/BaseStickPackageHelper.java)(默认)
-2. [首尾特殊字符处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/SpecifiedStickPackageHelper.java)
-3. [固定长度处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/StaticLenStickPackageHelper.java)
-4. [动态长度处理](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/VariableLenStickPackageHelper.java)
-支持自定义粘包处理，第一步实现[AbsStickPackageHelper](https://github.com/xmaihh/Android-Serialport/blob/master/serialport/src/main/java/tp/xmaihh/serialport/stick/AbsStickPackageHelper.java)接口
+1. [不处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/BaseStickPackageHelper.java)(默认)
+2. [首尾特殊字符处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/SpecifiedStickPackageHelper.java)
+3. [固定长度处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/StaticLenStickPackageHelper.java)
+4. [动态长度处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/VariableLenStickPackageHelper.java)
+支持自定义粘包处理，第一步实现[AbsStickPackageHelper](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/AbsStickPackageHelper.java)接口
 
 
 ### 通用疑问解答  
@@ -263,7 +263,7 @@ dependencyResolutionManagement {
   - 第一代版本sdk提交
 
 ### QQ 群：458173716  
-<img src="https://github.com/cl-6666/serialPort/blob/master/qq2.jpg" width="350" height="560" alt="演示"/>  
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/qq2.jpg" width="350" height="560" alt="演示"/>  
 
 ### 感谢
 - [AndroidSerialPort](https://github.com/kongqw/AndroidSerialPort)
