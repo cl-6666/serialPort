@@ -23,6 +23,9 @@ public class App extends Application {
         // 初始化 Toast 框架
         ToastUtils.init(this);
 //        SerialUtils.getInstance().init(this,true,"TAG",50);
+        /**
+         * 设置停止位、数据位、校验位
+         */
         SerialUtils.getInstance().init(this,true,"TAG",
                 50,8,0,1);
 

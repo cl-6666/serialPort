@@ -46,6 +46,10 @@ public class SerialConfig {
         return serialPortReconnection;
     }
 
+    public void setIntervalSleep(int intervalSleep) {
+        this.intervalSleep = intervalSleep;
+    }
+
     public int getFlags() {
         return flags;
     }
