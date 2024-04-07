@@ -18,6 +18,7 @@ MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9
 
 # 效果图  
 测试机型：RK3399  
+测试系统：Android8  
 测试分辨率： 1920x1200  
 测试时间：持续心跳发送一个星期，无任何问题  
 <img src="https://github.com/cl-6666/serialPort/blob/master/img/sample_picture.png" width="650" height="360" alt="演示"/>  
