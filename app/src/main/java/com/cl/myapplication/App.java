@@ -22,7 +22,9 @@ public class App extends Application {
         super.onCreate();
         // 初始化 Toast 框架
         ToastUtils.init(this);
-        SerialUtils.getInstance().init(this,true,"TAG",100);
+//        SerialUtils.getInstance().init(this,true,"TAG",50);
+        SerialUtils.getInstance().init(this,true,"TAG",
+                50,8,0,1);
 
         //初始化日志框架
 //        XLogConfig logConfig = new XLogConfig.Builder()
@@ -46,7 +48,11 @@ public class App extends Application {
 //
 //        SerialConfig serialConfig = new SerialConfig.Builder()
 //                .setXLogConfig(logConfig)
-//                .setIntervalSleep(200)
+//                .setIntervalSleep(100)
+//                .setFlags(0)
+//                .setDatabits(8)
+//                .setStopbits(1)
+//                .setParity(0)
 //                .build();
 //        SerialUtils.getInstance().init(this, serialConfig);
     }

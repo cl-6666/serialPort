@@ -11,13 +11,12 @@ import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener;
 import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener;
 import com.kongqw.serialportlibrary.thread.SerialPortReadThread;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class SerialPortManager extends SerialPort {
@@ -34,7 +33,6 @@ public class SerialPortManager extends SerialPort {
     //串口类型
     private final SerialPortEnum mSerialPortEnum;
 
-
     public SerialPortManager(SerialPortEnum mSerialPortEnum) {
         this.mSerialPortEnum = mSerialPortEnum;
     }
@@ -49,43 +47,18 @@ public class SerialPortManager extends SerialPort {
         closeSerialPort();
         XLog.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", devicePath, baudRate));
         // 校验串口权限
-        if (!new File(devicePath).canRead() || !new File(devicePath).canWrite()) {
-            boolean chmod777 = chmod777(new File(devicePath));
-            if (!chmod777) {
-                XLog.i(TAG, "openSerialPort: 没有读写权限");
-                if (null != mOnOpenSerialPortListener) {
-                    mOnOpenSerialPortListener.openState(mSerialPortEnum, new File(devicePath), SerialStatus.NO_READ_WRITE_PERMISSION);
-                }
-                return false;
-            }
+        if (!checkSerialPortPermission(devicePath)) {
+            return false;
         }
-        if (!new File(devicePath).canRead() || !new File(devicePath).canWrite()) {
-            try {
-                /* Missing read/write permission, trying to chmod the file */
-                /*Process su;
-                su = Runtime.getRuntime().exec("su");
-                String cmd = "chmod 666 " + device.getAbsolutePath() + "\n" + "exit\n";
-                su.getOutputStream().write(cmd.getBytes());
-                if ((su.waitFor() != 0) || !device.canRead() || !device.canWrite()) {
-                    throw new SecurityException();
-                }*/
-                List<String> commnandList1 = new ArrayList<>();
-                commnandList1.add("chmod 777 " + new File(devicePath).getAbsolutePath());
-                ShellUtils.execCommand(commnandList1, true);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new SecurityException();
-            }
-        }
-
         try {
-            mFd = open(new File(devicePath).getAbsolutePath(), baudRate, 0);
+            mFd = open(devicePath, baudRate, SerialUtils.getInstance().getmSerialConfig().getFlags(),
+                    SerialUtils.getInstance().getmSerialConfig().getDatabits(),
+                    SerialUtils.getInstance().getmSerialConfig().getStopbits(),
+                    SerialUtils.getInstance().getmSerialConfig().getParity());
             mFileInputStream = new FileInputStream(mFd);
             mFileOutputStream = new FileOutputStream(mFd);
             XLog.i(TAG, "openSerialPort: 串口已经打开 " + mFd);
-            if (null != mOnOpenSerialPortListener) {
-                mOnOpenSerialPortListener.openState(mSerialPortEnum, new File(devicePath), SerialStatus.SUCCESS_OPENED);
-            }
+            notifySerialPortOpened(new File(devicePath), SerialStatus.SUCCESS_OPENED);
             // 开启发送消息的线程
             startSendThread();
             // 开启接收消息的线程
@@ -93,11 +66,40 @@ public class SerialPortManager extends SerialPort {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            if (null != mOnOpenSerialPortListener) {
-                mOnOpenSerialPortListener.openState(mSerialPortEnum, new File(devicePath), SerialStatus.OPEN_FAIL);
+            notifySerialPortOpened(new File(devicePath), SerialStatus.OPEN_FAIL);
+            return false;
+        }
+    }
+
+    /**
+     * 检查串口权限
+     *
+     * @param devicePath 串口号
+     * @return 是否有权限
+     */
+    private boolean checkSerialPortPermission(String devicePath) {
+        File deviceFile = new File(devicePath);
+        if (!deviceFile.canRead() || !deviceFile.canWrite()) {
+            boolean chmod777 = chmod777(deviceFile);
+            if (!chmod777) {
+                XLog.i(TAG, "openSerialPort: 没有读写权限");
+                notifySerialPortOpened(deviceFile, SerialStatus.NO_READ_WRITE_PERMISSION);
+                return false;
             }
         }
-        return false;
+        return true;
+    }
+
+    /**
+     * 通知串口打开状态
+     *
+     * @param deviceFile 串口文件
+     * @param status     打开状态
+     */
+    private void notifySerialPortOpened(File deviceFile, SerialStatus status) {
+        if (null != mOnOpenSerialPortListener) {
+            mOnOpenSerialPortListener.openState(mSerialPortEnum, deviceFile, status);
+        }
     }
 
     /**
@@ -112,23 +114,22 @@ public class SerialPortManager extends SerialPort {
         stopSendThread();
         // 停止接收消息的线程
         stopReadThread();
+        closeStream(mFileInputStream);
+        closeStream(mFileOutputStream);
+    }
 
-        if (null != mFileInputStream) {
+    /**
+     * 关闭流
+     *
+     * @param stream 流对象
+     */
+    private void closeStream(Closeable stream) {
+        if (null != stream) {
             try {
-                mFileInputStream.close();
+                stream.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            mFileInputStream = null;
-        }
-
-        if (null != mFileOutputStream) {
-            try {
-                mFileOutputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mFileOutputStream = null;
         }
     }
 

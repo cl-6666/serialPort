@@ -7,7 +7,6 @@ import java.io.Serializable;
 public class Device implements Serializable{
 
     private static final String TAG = Device.class.getSimpleName();
-
     private String name;
     private String root;
     private File file;
