@@ -37,12 +37,17 @@ class MainActivity : AppCompatActivity(){
             return
         }
         val sendContentBytes = editTextSendContent.toByteArray()
-        val sendBytes = mSerialPortManager!!.sendBytes(sendContentBytes)
+        val sendBytes = mSerialPortManager?.sendBytes(sendContentBytes)
         Log.i(
             TAG,
             "onSend: sendBytes = $sendBytes"
         )
-        showToast(if (sendBytes) "发送成功" else "发送失败")
+        showToast(if (sendBytes == true) "发送成功" else "发送失败")
+    }
+
+
+    fun onDestroy(view: View){
+
     }
 
 

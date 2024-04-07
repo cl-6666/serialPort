@@ -1,6 +1,5 @@
 package com.kongqw.serialportlibrary;
 
-import android.util.Log;
 
 import com.cl.log.XLog;
 

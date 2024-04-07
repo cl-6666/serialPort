@@ -40,7 +40,7 @@ public class SerialPort {
     }
 
     // 打开串口
-    protected native FileDescriptor open(String path, int baudRate, int flags);
+    protected native FileDescriptor open(String path, int baudrate, int flags, int databits, int stopbits, int parity);
 
     // 关闭串口
     protected native void close();
