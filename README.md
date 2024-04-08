@@ -17,6 +17,13 @@ MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9
 >一个灵活、高效并且轻量的串口通信框架，让串口操作变得简单易用，大家在使用遇到问题了欢迎指出，我会第一时间修复，强烈建议以依赖的方式导入，这样避免代码同步，有问题或建议？请通过博客、qq群联系我们。
 
 # 效果图  
+第三方测试报告  
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance1.png" width="440" height="320" alt="演示"/>
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance2.png" width="440" height="320" alt="演示"/>
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance3.png" width="440" height="320" alt="演示"/>
+
+
+自测机型
 测试机型：RK3399  
 测试系统：Android8  
 测试分辨率： 1920x1200  
