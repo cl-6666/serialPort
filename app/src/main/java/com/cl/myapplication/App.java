@@ -29,6 +29,8 @@ public class App extends Application {
         SerialUtils.getInstance().init(this,true,"TAG",
                 50,8,0,1);
 
+        SerialUtils.getInstance().setStickPackageHelper("自定义粘包处理类");
+
         //初始化日志框架
 //        XLogConfig logConfig = new XLogConfig.Builder()
 //                //全局TAG
