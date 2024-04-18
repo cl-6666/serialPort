@@ -157,8 +157,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         binding.spDatabits.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateViewState(false);
-                SerialUtils.getInstance().serialPortClose();
+                closeSerialPort();
                 SerialUtils.getInstance().getmSerialConfig().setDatabits(Integer.parseInt(databits[position]));
             }
 
@@ -175,8 +174,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         binding.spParity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateViewState(false);
-                SerialUtils.getInstance().serialPortClose();
+                closeSerialPort();
                 if (position == 0) {
                     SerialUtils.getInstance().getmSerialConfig().setParity(0);
                 } else if (position == 1) {
@@ -203,8 +201,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         binding.spStopbits.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateViewState(false);
-                SerialUtils.getInstance().serialPortClose();
+                closeSerialPort();
                 SerialUtils.getInstance().getmSerialConfig().setStopbits(Integer.parseInt(stopbits[position]));
             }
 
@@ -226,8 +223,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
 
         binding.btnOpenDevice.setOnClickListener(v -> {
             if (mOpened) {
-                SerialUtils.getInstance().serialPortClose();
-                mOpened = false;
+                closeSerialPort();
             } else {
                 //多串口演示
                 List<Driver> list = new ArrayList<>();
@@ -243,6 +239,11 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         binding.btnSendData.setOnClickListener((view) -> {
             onSend();
         });
+    }
+    private void closeSerialPort() {
+        SerialUtils.getInstance().serialPortClose();
+        mOpened = false;
+        updateViewState(mOpened);
     }
 
     public static void verifyStoragePermissions(Activity activity) {
