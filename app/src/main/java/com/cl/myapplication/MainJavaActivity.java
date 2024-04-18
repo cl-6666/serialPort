@@ -260,7 +260,6 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         }
     }
 
-
     /**
      * 更新视图状态
      *
