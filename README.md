@@ -50,7 +50,7 @@ Step 2. Add the dependency
 
 ``` Gradle
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:v4.0.0'
+    implementation 'com.github.cl-6666:serialPort:v4.0.1'
 }
 ```  
 ### 属性支持
@@ -250,6 +250,11 @@ dependencyResolutionManagement {
 
 ### 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
+
+
+- v4.0.1：(2024年04月18日)
+  - 修复校验位无效问题
+  - demo打开串口和关闭串口相关优化
 
 - v4.0.0：(2024年04月06日)
   - 增加对外设置停止位、数据位、校验位、流控等参数
