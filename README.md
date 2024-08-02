@@ -236,6 +236,7 @@ SerialUtils.getInstance().serialPortClose();
 2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
 3.假如能接收到数据，但出现接收数据不完整，请检查波特率是否对的，然后修改一下数据接收的间隔时间  
 4.在grdle8.x依赖不了问题,依赖方式有所改变    
+5.在pc端调试工具发送指令，不要转16进制发送，不然会出现接收不了消息情况，后续版本会优化这个问题  
 ``` java
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
