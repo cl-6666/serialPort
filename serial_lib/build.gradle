@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 400
-        versionName "4.0.0"
+        versionCode 401
+        versionName "4.0.1"
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_TOOLCHAIN=clang'
@@ -26,6 +26,7 @@ android {
     externalNativeBuild {
         cmake {
             path "src/main/cpp/CMakeLists.txt"
+            version "3.18.1"
         }
     }
 
