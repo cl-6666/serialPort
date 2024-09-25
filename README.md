@@ -236,6 +236,7 @@ SerialUtils.getInstance().serialPortClose();
 2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
 3.假如能接收到数据，但出现接收数据不完整，请检查波特率是否对的，然后修改一下数据接收的间隔时间  
 4.在grdle8.x依赖不了问题,依赖方式有所改变    
+5.在pc端调试工具发送指令，不要转16进制发送，不然会出现接收不了消息情况，后续版本会优化这个问题  
 ``` java
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -263,24 +264,6 @@ dependencyResolutionManagement {
 - v3.1.7：(2023年11月09日)
   - 增加对外日志参数配置，也支持默认配置
   - 增加对外串口读写速度参数设置
-
-- v3.1.3：(2023年02月21日)
-  - 支持多串口接收和发送(目前sdk支持6路串口)
-  - 避免分包接收，支持大量数据一次性接收
-  - 建议所有都升级到V3.1.3,使用上和V3.0.0有一点区别，V3.1.3使用更加简单
-  
-- v3.0.0：(2021年10月20日)
-  - 基于现有的串口框架增加调试助手，方便测试
-  - 框架新增打开方法，支持直接修改串口
-  - 代码优化  
-
-- v2.0.0：(2021年9月10日)
-  - 解决数据包接收不完整bug 
-  - 增加参数构建 
-  - 代码优化  
-
-- v1.0.0
-  - 第一代版本sdk提交
 
 ### QQ 群：458173716  
 <img src="https://github.com/cl-6666/serialPort/blob/master/img/qq2.jpg" width="350" height="560" alt="演示"/>  
