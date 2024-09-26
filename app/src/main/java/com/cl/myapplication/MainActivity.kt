@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity(){
 
 
     fun onDestroy(view: View){
-
     }
 
 
