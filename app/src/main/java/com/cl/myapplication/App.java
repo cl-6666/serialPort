@@ -30,7 +30,6 @@ public class App extends Application {
         SerialUtils.getInstance().init(this,true,"TAG",
                 50,8,0,1);
 
-
         //串口粘包配置，框架默认使用BaseStickPackageHelper,无特殊需求，可不设置，多串口情况需要配置
 //        SerialUtils.getInstance().setStickPackageHelper(new BaseStickPackageHelper(),
 //                new BaseStickPackageHelper());
