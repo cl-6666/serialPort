@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.hjq.toast.ToastUtils;
 import com.kongqw.serialportlibrary.SerialConfig;
 import com.kongqw.serialportlibrary.SerialUtils;
+import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
 
 /**
  * 项目：serialPort
@@ -29,7 +30,10 @@ public class App extends Application {
         SerialUtils.getInstance().init(this,true,"TAG",
                 50,8,0,1);
 
-//        SerialUtils.getInstance().setStickPackageHelper("自定义粘包处理类");
+
+        //串口粘包配置，框架默认使用BaseStickPackageHelper,无特殊需求，可不设置，多串口情况需要配置
+//        SerialUtils.getInstance().setStickPackageHelper(new BaseStickPackageHelper(),
+//                new BaseStickPackageHelper());
 
         //初始化日志框架
 //        XLogConfig logConfig = new XLogConfig.Builder()

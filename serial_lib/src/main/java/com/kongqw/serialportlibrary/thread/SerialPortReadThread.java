@@ -1,6 +1,10 @@
 package com.kongqw.serialportlibrary.thread;
 
+import com.cl.log.XLog;
 import com.kongqw.serialportlibrary.SerialUtils;
+import com.kongqw.serialportlibrary.enumerate.SerialErrorCode;
+import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -13,19 +17,25 @@ public abstract class SerialPortReadThread extends Thread {
     public abstract void onDataReceived(byte[] bytes);
 
     private InputStream mInputStream;
+    private SerialPortEnum mSerialPortEnum;
 
-    public SerialPortReadThread(InputStream inputStream) {
+    public SerialPortReadThread(InputStream inputStream, SerialPortEnum mSerialPortEnum) {
         mInputStream = inputStream;
+        this.mSerialPortEnum = mSerialPortEnum;
     }
 
     @Override
     public void run() {
-        super.run();
-        while (!isInterrupted()) {
-            byte[] buffer = SerialUtils.getInstance().getStickPackageHelper().execute(mInputStream);
-            if (buffer != null && buffer.length > 0) {
-                // 调用 onDataReceived 方法处理数据
-                onDataReceived(buffer);
+        if (mInputStream == null) return;
+        while (!Thread.currentThread().isInterrupted()) {
+            if (SerialUtils.getInstance().getStickPackageHelper().size() >= mSerialPortEnum.ordinal()+1){
+                byte[] buffer = SerialUtils.getInstance().getStickPackageHelper()
+                        .get(mSerialPortEnum.ordinal()).execute(mInputStream);
+                if (buffer != null && buffer.length > 0) {
+                    onDataReceived(buffer);
+                }
+            }else {
+                SerialUtils.getInstance().handleError(SerialErrorCode.STICK_PACKAGE_CONFIG_ERROR);
             }
         }
     }

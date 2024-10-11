@@ -5,6 +5,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.cl.log.XLog;
+import com.kongqw.serialportlibrary.enumerate.SerialErrorCode;
 import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
 import com.kongqw.serialportlibrary.enumerate.SerialStatus;
 import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener;
@@ -82,8 +83,8 @@ public class SerialPortManager extends SerialPort {
         if (!deviceFile.canRead() || !deviceFile.canWrite()) {
             boolean chmod777 = chmod777(deviceFile);
             if (!chmod777) {
-                XLog.i(TAG, "openSerialPort: 没有读写权限");
                 notifySerialPortOpened(deviceFile, SerialStatus.NO_READ_WRITE_PERMISSION);
+                SerialUtils.getInstance().handleError(SerialErrorCode.PERMISSION_DENIED);
                 return false;
             }
         }
@@ -198,7 +199,7 @@ public class SerialPortManager extends SerialPort {
      * 开启接收消息的线程
      */
     private void startReadThread() {
-        mSerialPortReadThread = new SerialPortReadThread(mFileInputStream) {
+        mSerialPortReadThread = new SerialPortReadThread(mFileInputStream,mSerialPortEnum) {
             @Override
             public void onDataReceived(byte[] bytes) {
                 if (null != mOnSerialPortDataListener) {
