@@ -43,8 +43,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation project(path: ':serial_lib')
-//    implementation 'com.github.cl-6666:serialPort:v4.0.1'
+//    implementation project(path: ':serial_lib')
+    implementation 'com.github.cl-6666:serialPort:v4.1.1'
     // eventbus
     implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'com.github.getActivity:ToastUtils:9.6'
