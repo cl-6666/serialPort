@@ -37,6 +37,7 @@ MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9
 因为图方便，用手机浏览器扫码可下载
 
 # PC端串口调试助手
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/pc_ck.jpg" width="440" height="320" alt="演示"/>
 通过网盘分享的文件：pc串口调试助手.zip
 链接: https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh 提取码: f7sh 
 --来自百度网盘超级会员v9的分享
