@@ -36,6 +36,11 @@ MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9
 <img src="https://github.com/cl-6666/serialPort/blob/master/img/QRCode_336.png"><img/><br/>
 因为图方便，用手机浏览器扫码可下载
 
+# PC端串口调试助手
+通过网盘分享的文件：pc串口调试助手.zip
+链接: https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh 提取码: f7sh 
+--来自百度网盘超级会员v9的分享
+
 # 项目依赖
 ``` Gradle
 allprojects {
@@ -50,7 +55,7 @@ Step 2. Add the dependency
 
 ``` Gradle
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:v4.0.1'
+    implementation 'com.github.cl-6666:serialPort:v4.1.1'
 }
 ```  
 ### 属性支持
@@ -60,6 +65,20 @@ dependencies {
 |	校验位	|	无奇偶校验(NONE), 奇校验(ODD), 偶校验(EVEN), 0校验(SPACE), 1校验(MARK); 默认无奇偶校验，对应关系NONE(0)-ODD(1)-EVEN(2)-SPACE(3)-MARK(4);	|
 |	停止位		|	1,2 ;默认值1	|
 |	标志位	|	不使用流控(NONE), 硬件流控(RTS/CTS), 软件流控(XON/XOFF); 默认不使用流控	|
+
+### 错误码参照表  
+|	错误编码	|	错误说明	|
+|	---		|	---		|
+|	1000	|	未知错误	|
+|	1001	|	串口打开失败	|
+|	1002	|	串口数据发送失败	|
+|	1003	|	未知的串口类型，请检查串口路线是否错误	|
+|	1004	|	串口数据接收失败	|
+|	1005	|	未初始化的串口	|
+|	1006	|	文件未找到	|
+|	1007	|	串口数量不符合要求,目前最大只支持6路串口	|
+|	1008	|	黏包数量配置不合法，请检查是否配置了错误的参数，或者没有配置	|
+|	1009	|	权限被拒绝,请检查是否有串口的读写权限，建议运行SelectSerialPortActivity查看	|
 
   
 ### 框架初始化，在Application里面,支持动态配置
@@ -83,6 +102,10 @@ dependencies {
          */
         SerialUtils.getInstance().init(this,true,"TAG",
                 50,8,0,1);
+
+        //串口粘包配置，框架默认使用BaseStickPackageHelper,无特殊需求，可不设置，多串口情况需要配置,这里面配置需要和manyOpenSerialPort里面的顺序对应，总共支持6路
+        SerialUtils.getInstance().setStickPackageHelper(new BaseStickPackageHelper(),
+                new BaseStickPackageHelper());
     }
 }
 ```
@@ -197,7 +220,7 @@ dependencies {
 ``` Java
         //多串口演示
         List<Driver> list2=new ArrayList<>();
-        //串口ttyS4
+        //串口ttyS4，这里假如是多串口，也需要配置对应的黏包规则，具体请参考Application里面
         list2.add(new Driver("/dev/ttyUSB0", "115200"));
         list2.add(new Driver("/dev/ttyUSB1", "115200"));
         list2.add(new Driver("/dev/ttyS4", "115200"));
@@ -252,6 +275,10 @@ dependencyResolutionManagement {
 ### 版本更新历史：  
 [![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
 
+- v4.1.1：(2024年10月11日)
+  - 增加多串口黏包配置
+  - 增加错误码，方便开发者排查问题
+  - 现有代码优化
 
 - v4.0.1：(2024年04月18日)
   - 修复校验位无效问题
