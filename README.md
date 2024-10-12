@@ -46,8 +46,8 @@ MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9
 ``` Gradle
 allprojects {
            repositories {
-			...
-			maven { url 'https://jitpack.io' }
+                    mavenCentral()
+                    maven { url 'https://jitpack.io' }
              }
 	}
 ```
