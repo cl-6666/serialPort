@@ -129,12 +129,10 @@ dependencies {
     @Override
     public void onCreate() {
         super.onCreate();
-        /**
-         * 初始化串口框架  简单配置  
-         * 是否打开日志、日志标识、串口接发间隔速度 
-         * 数据量单一情况下建议设置100  数据量大情况建议设置500
+         /**
+         * 设置停止位、数据位、校验位
          */
-       SerialUtils.getInstance().init(this,true,"TAG",100);
+        SerialUtils.getInstance().init(this,true,"TAG", 50,8,0,1);
     }
 }
 ```
