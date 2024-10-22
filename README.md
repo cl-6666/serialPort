@@ -82,9 +82,9 @@ dependencies {
 |	1009	|	权限被拒绝,请检查是否有串口的读写权限，建议运行SelectSerialPortActivity查看	|
 
   
-### 框架初始化，在Application里面,支持动态配置
+### 框架初始化，在Application里面,支持动态配置，根据场景灵活初始化，一般简单初始化即可
 
-- 参数：上下文，是否打开日志，日志标签  
+- 参数：上下文，是否打开日志，日志标签，简单初始化
 ``` Java
    public class App extends Application {
 
@@ -97,16 +97,44 @@ dependencies {
          * 数据量单一情况下建议设置100  数据量大情况建议设置500
          */
        SerialUtils.getInstance().init(this,true,"TAG",100);
-     
-         /**
-         * 设置停止位、数据位、校验位
-         */
-        SerialUtils.getInstance().init(this,true,"TAG",
-                50,8,0,1);
+    }
+}
+```
 
-        //串口粘包配置，框架默认使用BaseStickPackageHelper,无特殊需求，可不设置，多串口情况需要配置,这里面配置需要和manyOpenSerialPort里面的顺序对应，总共支持6路
+- 初始化自定义黏包配置，默认使用的是BaseStickPackageHelper
+``` Java
+   public class App extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        /**
+         * 初始化串口框架  简单配置  
+         * 是否打开日志、日志标识、串口接发间隔速度 
+         * 数据量单一情况下建议设置100  数据量大情况建议设置500
+         */
+       SerialUtils.getInstance().init(this,true,"TAG",100);
+
+      //串口粘包配置，框架默认使用BaseStickPackageHelper,无特殊需求，可不设置，多串口情况需要配置,这里面配置需要和manyOpenSerialPort里面的顺序对应，总共支持6路
         SerialUtils.getInstance().setStickPackageHelper(new BaseStickPackageHelper(),
                 new BaseStickPackageHelper());
+    }
+}
+```  
+
+- 带校验位方式的初始化，如果无特殊设置，使用简单初始化
+``` Java
+   public class App extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        /**
+         * 初始化串口框架  简单配置  
+         * 是否打开日志、日志标识、串口接发间隔速度 
+         * 数据量单一情况下建议设置100  数据量大情况建议设置500
+         */
+       SerialUtils.getInstance().init(this,true,"TAG",100);
     }
 }
 ```
@@ -139,6 +167,7 @@ dependencies {
     }
 }
 ```
+
 - 业务代码设置参数
 ``` Java
    //设置数据位
