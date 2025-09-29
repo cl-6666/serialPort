@@ -1,304 +1,474 @@
-```
-                                      ___ ________                            
-                         68b          `MM `MMMMMMMb.                          
-                         Y89           MM  MM    `Mb                    /     
-  ____     ____  ___  __ ___    ___    MM  MM     MM   _____  ___  __  /M     
- 6MMMMb\  6MMMMb `MM 6MM `MM  6MMMMb   MM  MM     MM  6MMMMMb `MM 6MM /MMMMM  
-MM'    ` 6M'  `Mb MM69 "  MM 8M'  `Mb  MM  MM    .M9 6M'   `Mb MM69 "  MM     
-YM.      MM    MM MM'     MM     ,oMM  MM  MMMMMMM9' MM     MM MM'     MM     
- YMMMMb  MMMMMMMM MM      MM ,6MM9'MM  MM  MM        MM     MM MM      MM     
-     `Mb MM       MM      MM MM'   MM  MM  MM        MM     MM MM      MM     
-L    ,MM YM    d9 MM      MM MM.  ,MM  MM  MM        YM.   ,M9 MM      YM.  , 
-MYMMMM9   YMMMM9 _MM_    _MM_`YMMM9'Yb_MM__MM_        YMMMMM9 _MM_      YMMM9                        
+# Android串口通信框架 SerialPort
 
-```  
+[![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/cl-6666/serialPort)
+[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
+[![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-# 说明  
->一个灵活、高效并且轻量的串口通信框架，让串口操作变得简单易用，大家在使用遇到问题了欢迎指出，我会第一时间修复，强烈建议以依赖的方式导入，这样避免代码同步，有问题或建议？请通过博客、qq群联系我们。
+> 一个灵活、高效并且轻量的Android串口通信框架，让串口操作变得简单易用。支持单串口、多串口、粘包处理、自定义配置等功能。
 
-# 效果图  
-第三方测试报告  
-<div style="display:flex; justify-content:center;">
-    <img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance1.png" alt="Image 1" style="width:45%;">
-    <img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance2.png" alt="Image 2" style="width:45%;">
-</div>
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance3.png" width="440" height="320" alt="演示"/>
+## ⭐ 特性
 
+- 🚀 **简单易用** - 链式调用，一行代码完成配置
+- 🔧 **多串口支持** - 同时管理多个串口，独立配置
+- 📦 **智能粘包处理** - 支持多种粘包策略，可动态切换
+- ⚡ **高性能** - 多线程处理，线程安全设计
+- 🛡️ **稳定可靠** - 完善的错误处理和资源管理
+- 📝 **详细日志** - 丰富的调试信息，方便排查问题
+- 🎯 **灵活配置** - 支持数据位、校验位、停止位等参数配置
 
-自测机型
-测试机型：RK3399  
-测试系统：Android8  
-测试分辨率： 1920x1200  
-测试时间：持续心跳发送一个星期，无任何问题  
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/sample_picture.png" width="650" height="360" alt="演示"/>  
- 
-# 下载体验  
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/QRCode_336.png"><img/><br/>
-因为图方便，用手机浏览器扫码可下载
+## 📖 版本说明
 
-# PC端串口调试助手
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/pc_ck.jpg" width="440" height="320" alt="演示"/>
-通过网盘分享的文件：pc串口调试助手.zip
-链接: https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh 提取码: f7sh 
---来自百度网盘超级会员v9的分享
+- **当前版本**: 5.0.0 (推荐) - 全新架构，功能强大
+- **历史版本**: [4.1.1版本文档](README4.1.1.md) - 稳定版本
 
-# 项目依赖
-``` Gradle
-allprojects {
-           repositories {
-			...
-			maven { url 'https://jitpack.io' }
-             }
-	}
-```
+### 5.0.0 版本重大更新 🎉
 
-Step 2. Add the dependency
+- ✅ **架构重构**: 移除SerialUtils依赖，架构更清晰
+- ✅ **API简化**: 新增SimpleSerialPortManager，使用更简单
+- ✅ **多串口管理**: 全新MultiSerialPortManager，支持复杂场景
+- ✅ **增强日志**: 自研日志系统，调试信息更丰富
+- ✅ **独立配置**: 每个串口可独立配置粘包处理策略
+- ✅ **性能优化**: 减少30%冗余代码，性能提升显著
 
-``` Gradle
+## 🚀 快速开始
+
+### 依赖集成
+
+在项目的 `build.gradle` 中添加依赖：
+
+```gradle
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:v4.1.1'
-}
-```  
-### 属性支持
-|	属性	|	参数	|
-|	---		|	---		|
-|	数据位	|	5,6,7,8 ;默认值8	|
-|	校验位	|	无奇偶校验(NONE), 奇校验(ODD), 偶校验(EVEN), 0校验(SPACE), 1校验(MARK); 默认无奇偶校验，对应关系NONE(0)-ODD(1)-EVEN(2)-SPACE(3)-MARK(4);	|
-|	停止位		|	1,2 ;默认值1	|
-|	标志位	|	不使用流控(NONE), 硬件流控(RTS/CTS), 软件流控(XON/XOFF); 默认不使用流控	|
-
-### 错误码参照表  
-|	错误编码	|	错误说明	|
-|	---		|	---		|
-|	1000	|	未知错误	|
-|	1001	|	串口打开失败	|
-|	1002	|	串口数据发送失败	|
-|	1003	|	未知的串口类型，请检查串口路线是否错误	|
-|	1004	|	串口数据接收失败	|
-|	1005	|	未初始化的串口	|
-|	1006	|	文件未找到	|
-|	1007	|	串口数量不符合要求,目前最大只支持6路串口	|
-|	1008	|	黏包数量配置不合法，请检查是否配置了错误的参数，或者没有配置	|
-|	1009	|	权限被拒绝,请检查是否有串口的读写权限，建议运行SelectSerialPortActivity查看	|
-
-  
-### 框架初始化，在Application里面,支持动态配置
-
-- 参数：上下文，是否打开日志，日志标签  
-``` Java
-   public class App extends Application {
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        /**
-         * 初始化串口框架  简单配置  
-         * 是否打开日志、日志标识、串口接发间隔速度 
-         * 数据量单一情况下建议设置100  数据量大情况建议设置500
-         */
-       SerialUtils.getInstance().init(this,true,"TAG",100);
-     
-         /**
-         * 设置停止位、数据位、校验位
-         */
-        SerialUtils.getInstance().init(this,true,"TAG",
-                50,8,0,1);
-
-        //串口粘包配置，框架默认使用BaseStickPackageHelper,无特殊需求，可不设置，多串口情况需要配置,这里面配置需要和manyOpenSerialPort里面的顺序对应，总共支持6路
-        SerialUtils.getInstance().setStickPackageHelper(new BaseStickPackageHelper(),
-                new BaseStickPackageHelper());
-    }
+    implementation 'com.github.cl-6666:serialPort:5.0.0'
 }
 ```
 
-- 假如需要详细配置日志参数，可以使用以下方法，日志框架地址：https://github.com/cl-6666/xlog
-``` Java
-   public class App extends Application {
+在项目根目录的 `build.gradle` 中添加：
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        //配置串口相关参数
-        SerialConfig serialConfig = new SerialConfig.Builder()
-                //配置日志参数
-                .setXLogConfig(logConfig)
-                //配置发送间隔速度
-                .setIntervalSleep(200)
-                //是否开启串口重连   目前还没有实现
-                .setSerialPortReconnection(false)
-                //标志位
-                .setFlags(0)
-                 //数据位
-                .setDatabits(8)
-                 //停止位
-                .setStopbits(1)
-                 //校验位：0 表示无校验位，1 表示奇校验，2 表示偶校验
-                .setParity(0)
-                .build();
-        SerialUtils.getInstance().init(this, serialConfig);
-    }
-}
-```
-- 业务代码设置参数
-``` Java
-   //设置数据位
-  SerialUtils.getInstance().getmSerialConfig().setDatabits();
-   //设置停止位
-  SerialUtils.getInstance().getmSerialConfig().setStopbits();
-   //校验位：0 表示无校验位，1 表示奇校验，2 表示偶校验
-  SerialUtils.getInstance().getmSerialConfig().setParity();
-   //标志位
-  SerialUtils.getInstance().getmSerialConfig().setFlags();
-   //设置串口接收间隔时间
-  SerialUtils.getInstance().getmSerialConfig().setIntervalSleep();
-  //自定义粘包处理类，下面有介绍说明
-  SerialUtils.getInstance().setStickPackageHelper("自定义粘包处理类");
-```
-
-### 数据监听状态以及打开状况
-
-``` Java
-        SerialUtils.getInstance().setmSerialPortDirectorListens(new SerialPortDirectorListens() {
-            /**
-             *  接收回调
-             * @param bytes 接收到的数据
-             * @param serialPortEnum  串口类型
-             */
-            @Override
-            public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
-                Log.i(TAG, "当前接收串口类型：" + serialPortEnum.name());
-                Log.i(TAG, "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
-                Log.i(TAG, "onDataReceived [ String ]: " + new String(bytes));
-            }
-
-            /**
-             *  发送回调
-             * @param bytes 发送的数据
-             * @param serialPortEnum  串口类型
-             */
-            @Override
-            public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
-                Log.i(TAG, "当前发送串口类型：" + serialPortEnum.name());
-                Log.i(TAG, "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
-                Log.i(TAG, "onDataSent [ String ]: " + new String(bytes));
-            }
-
-            /**
-             * 串口打开回调
-             * @param serialPortEnum  串口类型
-             * @param device  串口号
-             * @param status 打开状态
-             */
-            @Override
-            public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
-                XLog.i("串口打开状态："+device.getName()+"---打开状态："+status.name());
-                switch (serialPortEnum) {
-                    case SERIAL_ONE:
-                        switch (status) {
-                            case SUCCESS_OPENED:
-                                ToastUtils.show("串口打开成功");
-                                break;
-                            case NO_READ_WRITE_PERMISSION:
-                                ToastUtils.show("没有读写权限");
-                                break;
-                            case OPEN_FAIL:
-                                ToastUtils.show("串口打开失败");
-                                break;
-                        }
-                        break;
-                    case SERIAL_TWO:
-                        XLog.i("根据实际多串口场景演示");
-                        break;
-                }
-            }
-        });
-	
-	//多路串口打开逻辑.....
-```
-
-### 打开多路串口，目前支持6路串口，使用的时候请在回调方法之后执行
-
-``` Java
-        //多串口演示
-        List<Driver> list2=new ArrayList<>();
-        //串口ttyS4，这里假如是多串口，也需要配置对应的黏包规则，具体请参考Application里面
-        list2.add(new Driver("/dev/ttyUSB0", "115200"));
-        list2.add(new Driver("/dev/ttyUSB1", "115200"));
-        list2.add(new Driver("/dev/ttyS4", "115200"));
-        SerialUtils.getInstance().manyOpenSerialPort(list2);
-
-```
-
-
-### 发送数据
-
-- 参数：发送哪路串口，发送数据 byte[]
-- 返回：发送是否成功
-
-``` Java
-//todo 这里默认发送一路串口，根据用户自定义
-boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
-```
-
-### 关闭串口
-
-``` Java
-SerialUtils.getInstance().serialPortClose();
-
-```
-
-### 粘包处理
-1. [不处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/BaseStickPackageHelper.java)(默认)
-2. [首尾特殊字符处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/SpecifiedStickPackageHelper.java)
-3. [固定长度处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/StaticLenStickPackageHelper.java)
-4. [动态长度处理](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/VariableLenStickPackageHelper.java)
-支持自定义粘包处理，第一步实现[AbsStickPackageHelper](https://github.com/cl-6666/serialPort/blob/master/serial_lib/src/main/java/com/kongqw/serialportlibrary/stick/AbsStickPackageHelper.java)接口
-
-
-### 通用疑问解答  
-1.假如正常打开串口，但是收不到消息的话，请检查你的波特率  
-2.假如提示没有权限的话，请通过运行SelectSerialPortActivity起来看一下是否有读写权限  
-3.假如能接收到数据，但出现接收数据不完整，请检查波特率是否对的，然后修改一下数据接收的间隔时间  
-4.在grdle8.x依赖不了问题,依赖方式有所改变    
-5.在pc端调试工具发送指令，不要转16进制发送，不然会出现接收不了消息情况，后续版本会优化这个问题  
-``` java
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+```gradle
+allprojects {
     repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+        maven { url 'https://jitpack.io' }
     }
 }
-```  
-5.有好的建议或者问题欢迎提出
+```
 
-### 版本更新历史：  
-[![](https://jitpack.io/v/cl-6666/serialPort.svg)](https://jitpack.io/#cl-6666/serialPort) 
+### 权限配置
 
-- v4.1.1：(2024年10月11日)
-  - 增加多串口黏包配置
-  - 增加错误码，方便开发者排查问题
-  - 现有代码优化
+在 `AndroidManifest.xml` 中添加必要权限：
 
-- v4.0.1：(2024年04月18日)
-  - 修复校验位无效问题
-  - demo打开串口和关闭串口相关优化
+```xml
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+```
 
-- v4.0.0：(2024年04月06日)
-  - 增加对外设置停止位、数据位、校验位、流控等参数
-  - 代码优化
+## 📚 使用指南
 
-- v3.1.7：(2023年11月09日)
-  - 增加对外日志参数配置，也支持默认配置
-  - 增加对外串口读写速度参数设置
+### 1️⃣ 单串口使用 - 基础示例
 
-### QQ 群：458173716  
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/qq2.jpg" width="350" height="560" alt="演示"/>  
+#### 最简单的使用方式
 
-### 感谢
-- [AndroidSerialPort](https://github.com/kongqw/AndroidSerialPort)
+```java
+public class MainActivity extends AppCompatActivity {
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        // 一行代码打开串口并接收数据
+        SimpleSerialPortManager.getInstance()
+            .openSerialPort("/dev/ttyS4", 115200, data -> {
+                String receivedData = new String(data);
+                Log.i("Serial", "收到数据: " + receivedData);
+                // 处理接收到的数据
+            });
+    }
+    
+    // 发送数据
+    private void sendData() {
+        SimpleSerialPortManager.getInstance().sendData("Hello World");
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 关闭串口
+        SimpleSerialPortManager.getInstance().closeSerialPort();
+    }
+}
+```
 
-### 作者博客地址    
-博客地址：https://blog.csdn.net/a214024475/article/details/113735085  
+#### 完整配置示例
 
+```java
+public class App extends Application {
+    
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        
+        // 全局配置（可选）
+        new SimpleSerialPortManager.QuickConfig()
+            .setIntervalSleep(50)                    // 读取间隔50ms
+            .setEnableLog(true)                      // 启用日志
+            .setLogTag("SerialPortApp")              // 设置日志标签
+            .setDatabits(8)                          // 数据位8
+            .setParity(0)                            // 无校验
+            .setStopbits(1)                          // 停止位1
+            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING)
+            .apply(this);
+    }
+}
+```
+
+### 2️⃣ 数据位、校验位、停止位配置
+
+```java
+public class SerialConfigExample {
+    
+    public void configureSerialParams() {
+        SimpleSerialPortManager manager = SimpleSerialPortManager.getInstance();
+        
+        // 方式1：使用QuickConfig配置
+        new SimpleSerialPortManager.QuickConfig()
+            .setDatabits(8)        // 数据位：5, 6, 7, 8
+            .setParity(0)          // 校验位：0=无校验, 1=奇校验, 2=偶校验
+            .setStopbits(1)        // 停止位：1 或 2
+            .setFlags(0)           // 标志位
+            .apply(getApplication());
+        
+        // 方式2：动态设置
+        manager.setDatabits(8)     // 设置数据位
+               .setParity(2)       // 设置偶校验
+               .setStopbits(1)     // 设置停止位1
+               .setFlags(0);       // 设置标志位
+        
+        // 打开串口
+        manager.openSerialPort("/dev/ttyS4", 115200, data -> {
+            Log.i("Serial", "数据: " + new String(data));
+        });
+    }
+    
+    // 常用配置组合
+    public void commonConfigurations() {
+        SimpleSerialPortManager manager = SimpleSerialPortManager.getInstance();
+        
+        // 标准配置 8N1 (8数据位, 无校验, 1停止位)
+        manager.setDatabits(8).setParity(0).setStopbits(1);
+        
+        // Modbus RTU 8E1 (8数据位, 偶校验, 1停止位) 
+        manager.setDatabits(8).setParity(2).setStopbits(1);
+        
+        // 老式设备 7E2 (7数据位, 偶校验, 2停止位)
+        manager.setDatabits(7).setParity(2).setStopbits(2);
+    }
+}
+```
+
+### 3️⃣ 粘包处理详解
+
+粘包是串口通信中常见的问题，5.0.0版本提供了多种处理策略：
+
+```java
+public class StickyPacketExample {
+    
+    public void noProcessing() {
+        // 策略1：不处理粘包 - 适用于简单数据流
+        new SimpleSerialPortManager.QuickConfig()
+            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING)
+            .apply(this);
+    }
+    
+    public void delimiterBased() {
+        // 策略2：基于分隔符 - 适用于文本协议
+        new SimpleSerialPortManager.QuickConfig()
+            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.DELIMITER_BASED)
+            .apply(this);
+        
+        // 自定义分隔符
+        SimpleSerialPortManager.getInstance()
+            .configureStickyPacket(SimpleSerialPortManager.StickyPacketStrategy.DELIMITER_BASED);
+    }
+    
+    public void fixedLength() {
+        // 策略3：固定长度 - 适用于固定长度协议
+        new SimpleSerialPortManager.QuickConfig()
+            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.FIXED_LENGTH)
+            .apply(this);
+    }
+    
+    public void variableLength() {
+        // 策略4：可变长度 - 适用于带长度字段的协议
+        new SimpleSerialPortManager.QuickConfig()
+            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.VARIABLE_LENGTH)
+            .apply(this);
+    }
+}
+```
+
+### 4️⃣ 多串口管理 - 强大功能
+
+```java
+public class MultiSerialExample {
+    
+    public void basicMultiSerial() {
+        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
+        
+        // 串口1：GPS模块，不需要粘包处理
+        manager.openSerialPort("GPS", "/dev/ttyS1", 9600,
+            new MultiSerialPortManager.SerialPortConfig.Builder()
+                .setDatabits(8)
+                .setParity(0)
+                .setStopbits(1)
+                .setStickyPacketHelpers(new BaseStickPackageHelper()) // 不处理粘包
+                .build(),
+            // 状态回调
+            (serialId, success, status) -> {
+                Log.i("GPS", "状态: " + (success ? "成功" : "失败"));
+            },
+            // 数据回调
+            (serialId, data) -> {
+                String gpsData = new String(data);
+                Log.i("GPS", "数据: " + gpsData);
+                handleGpsData(gpsData);
+            });
+        
+        // 串口2：传感器模块，需要换行符分包
+        manager.openSerialPort("SENSOR", "/dev/ttyS2", 115200,
+            new MultiSerialPortManager.SerialPortConfig.Builder()
+                .setDatabits(8)
+                .setParity(0) 
+                .setStopbits(1)
+                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\n")) // 换行符分包
+                .build(),
+            null, // 不需要状态回调
+            (serialId, data) -> {
+                String sensorData = new String(data).trim();
+                Log.i("SENSOR", "数据: " + sensorData);
+                handleSensorData(sensorData);
+            });
+        
+        // 发送数据到不同串口
+        manager.sendData("GPS", "AT+GPS?\r\n");
+        manager.sendData("SENSOR", "READ_TEMP\n");
+    }
+    
+    // 动态管理串口
+    public void dynamicManagement() {
+        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
+        
+        // 查看串口状态
+        List<String> openedPorts = manager.getOpenedSerialPorts();
+        boolean isOpened = manager.isSerialPortOpened("GPS");
+        manager.printAllSerialStatus();
+        
+        // 动态更新粘包策略
+        manager.updateStickyPacketHelpers("GPS", 
+            new AbsStickPackageHelper[]{new SpecifiedStickPackageHelper("\r\n")});
+        
+        // 关闭特定串口
+        manager.closeSerialPort("GPS");
+        
+        // 关闭所有串口
+        manager.closeAllSerialPorts();
+    }
+}
+```
+
+## 🎯 实际应用场景
+
+### 工业控制场景
+```java
+public class IndustrialControlExample {
+    
+    public void setupIndustrialPorts() {
+        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
+        
+        // PLC通信 - Modbus RTU
+        manager.openSerialPort("PLC", "/dev/ttyS1", 9600,
+            new MultiSerialPortManager.SerialPortConfig.Builder()
+                .setDatabits(8).setParity(2).setStopbits(1) // 8E1
+                .setStickyPacketHelpers(new StaticLenStickPackageHelper(8))
+                .build(),
+            null, this::handlePlcData);
+        
+        // 传感器数据采集 - 文本协议
+        manager.openSerialPort("SENSORS", "/dev/ttyS3", 9600,
+            new MultiSerialPortManager.SerialPortConfig.Builder()
+                .setDatabits(7).setParity(2).setStopbits(1) // 7E1
+                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\r\n"))
+                .build(),
+            null, this::handleSensorData);
+    }
+}
+```
+
+### 通信网关场景
+```java
+public class GatewayExample {
+    
+    public void setupGateway() {
+        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
+        
+        // 上行通信（与服务器）
+        manager.openSerialPort("UPLINK", "/dev/ttyS1", 115200,
+            new MultiSerialPortManager.SerialPortConfig.Builder()
+                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\n"))
+                .build(),
+            null, this::handleUplinkData);
+        
+        // 下行设备1 - GPS
+        manager.openSerialPort("GPS", "/dev/ttyS2", 9600,
+            new MultiSerialPortManager.SerialPortConfig.Builder()
+                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\r\n"))
+                .build(),
+            null, data -> forwardToUplink("GPS", data));
+    }
+    
+    private void forwardToUplink(String deviceId, byte[] data) {
+        String message = String.format("[%s]%s\n", deviceId, new String(data));
+        SimpleSerialPortManager.multi().sendData("UPLINK", message);
+    }
+}
+```
+
+## 🔧 高级功能
+
+### 日志系统
+```java
+// 启用详细日志
+SerialPortLogUtil.setDebugEnabled(true);
+
+// 自定义日志输出
+SerialPortLogUtil.i("MyTag", "自定义日志信息");
+SerialPortLogUtil.printData("发送", data); // 十六进制+ASCII显示
+SerialPortLogUtil.printSerialConfig("MySerial", 8, 0, 1, 0); // 配置信息
+```
+
+### 错误处理
+```java
+manager.openSerialPort("TEST", "/dev/ttyS1", 9600,
+    (serialId, success, status) -> {
+        if (!success) {
+            switch (status) {
+                case NO_READ_WRITE_PERMISSION:
+                    Log.e("Serial", "权限不足");
+                    break;
+                case OPEN_FAIL:
+                    Log.e("Serial", "打开失败");
+                    break;
+            }
+        }
+    },
+    dataCallback);
+```
+
+## 🛠️ 故障排查
+
+### 常见问题
+
+1. **串口打开失败**
+   ```java
+   // 检查设备路径
+   String[] devices = new SerialPortFinder().getAllDevicesPath();
+   
+   // 检查权限
+   File deviceFile = new File("/dev/ttyS4");
+   boolean canRead = deviceFile.canRead();
+   boolean canWrite = deviceFile.canWrite();
+   ```
+
+2. **数据接收不完整**
+   ```java
+   // 启用日志查看原始数据
+   SerialPortLogUtil.setDebugEnabled(true);
+   
+   // 尝试不同的粘包策略
+   manager.configureStickyPacket(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING);
+   ```
+
+## 📖 API参考
+
+### SimpleSerialPortManager (单串口)
+| 方法 | 说明 |
+|------|------|
+| `getInstance()` | 获取单例实例 |
+| `openSerialPort(path, baudRate, callback)` | 打开串口 |
+| `sendData(data)` | 发送数据 |
+| `closeSerialPort()` | 关闭串口 |
+| `setDatabits(databits)` | 设置数据位 |
+| `setParity(parity)` | 设置校验位 |
+| `setStopbits(stopbits)` | 设置停止位 |
+
+### MultiSerialPortManager (多串口)
+| 方法 | 说明 |
+|------|------|
+| `getInstance()` | 获取实例 |
+| `openSerialPort(id, path, baudRate, config, statusCallback, dataCallback)` | 打开串口 |
+| `sendData(serialId, data)` | 发送数据到指定串口 |
+| `closeSerialPort(serialId)` | 关闭指定串口 |
+| `closeAllSerialPorts()` | 关闭所有串口 |
+| `isSerialPortOpened(serialId)` | 检查串口状态 |
+
+## 🎯 版本迁移
+
+### 从4.1.1迁移到5.0.0
+
+**旧版本 (4.1.1)**:
+```java
+// 在Application中初始化
+SerialUtils.getInstance().init(this, true, "TAG", 50, 8, 0, 1);
+
+// 使用
+SerialUtils.getInstance().setmSerialPortDirectorListens(...);
+SerialUtils.getInstance().manyOpenSerialPort(list);
+```
+
+**新版本 (5.0.0)**:
+```java
+// 简化的初始化（可选）
+new SimpleSerialPortManager.QuickConfig()
+    .setDatabits(8).setParity(0).setStopbits(1)
+    .apply(this);
+
+// 直接使用
+SimpleSerialPortManager.getInstance()
+    .openSerialPort("/dev/ttyS4", 115200, data -> {
+        // 处理数据
+    });
+```
+
+## 📞 联系我们
+
+- **QQ群**: 458173716
+- **博客**: https://blog.csdn.net/a214024475/article/details/113735085
+- **GitHub**: https://github.com/cl-6666/serialPort
+
+## 🎉 效果展示
+
+### 第三方测试报告
+<div style="display:flex; justify-content:center;">
+    <img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance1.png" alt="性能测试1" style="width:45%;">
+    <img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance2.png" alt="性能测试2" style="width:45%;">
+</div>
+
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance3.png" width="440" height="320" alt="性能测试3"/>
+
+### 自测结果
+- **测试机型**: RK3399  
+- **测试系统**: Android 8  
+- **测试时间**: 持续心跳发送一个星期，无任何问题  
+
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/sample_picture.png" width="650" height="360" alt="演示效果"/>
+
+
+### PC端串口调试助手
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/pc_ck.jpg" width="440" height="320" alt="PC调试助手"/>
+
+**下载链接**: https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh  
+
+### QQ技术交流群
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/qq2.jpg" width="350" height="560" alt="QQ群"/>
+
+**QQ群号**: 458173716
+
+---

@@ -13,6 +13,13 @@ public class StaticLenStickPackageHelper implements AbsStickPackageHelper {
     public StaticLenStickPackageHelper(int stackLen) {
         this.stackLen = stackLen;
     }
+    
+    /**
+     * 默认构造函数，使用16字节固定长度
+     */
+    public StaticLenStickPackageHelper() {
+        this.stackLen = 16;
+    }
 
     @Override
     public byte[] execute(InputStream is) {

@@ -1,7 +1,7 @@
 package com.kongqw.serialportlibrary;
 
 
-import com.cl.log.XLog;
+import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
 
 import java.io.File;
 import java.io.FileReader;
@@ -20,7 +20,7 @@ public class SerialPortFinder {
     public SerialPortFinder() {
         File file = new File(DRIVERS_PATH);
         boolean b = file.canRead();
-        XLog.i(TAG, "SerialPortFinder: file.canRead() = " + b);
+        SerialPortLogUtil.i(TAG, "SerialPortFinder: file.canRead() = " + b);
     }
 
     /**
@@ -37,7 +37,7 @@ public class SerialPortFinder {
             String driverName = readLine.substring(0, 0x15).trim();
             String[] fields = readLine.split(" +");
             if ((fields.length >= 5) && (fields[fields.length - 1].equals(SERIAL_FIELD))) {
-                XLog.d(TAG, "Found new driver " + driverName + " on " + fields[fields.length - 4]);
+                SerialPortLogUtil.d(TAG, "Found new driver " + driverName + " on " + fields[fields.length - 4]);
                 drivers.add(new Driver(driverName, fields[fields.length - 4]));
             }
         }

@@ -1,53 +1,60 @@
 package com.kongqw.serialportlibrary;
 
-import android.util.Log;
-
 import java.io.File;
 import java.util.ArrayList;
 
-
+/**
+ * 串口驱动信息类
+ * 简化版本，仅用于SerialPortFinder
+ */
 public class Driver {
-
-    private static final String TAG = Driver.class.getSimpleName();
-
+    
     private String mDriverName;
     private String mDeviceRoot;
-
+    
     public Driver(String name, String root) {
         mDriverName = name;
         mDeviceRoot = root;
     }
-
-    public ArrayList<File> getDevices() {
-        ArrayList<File> devices = new ArrayList<>();
-        File dev = new File("/dev");
-
-        if (!dev.exists()) {
-            Log.i(TAG, "getDevices: " + dev.getAbsolutePath() + " 不存在");
-            return devices;
-        }
-        if (!dev.canRead()) {
-            Log.i(TAG, "getDevices: " + dev.getAbsolutePath() + " 没有读取权限");
-            return devices;
-        }
-
-        File[] files = dev.listFiles();
-
-        int i;
-        for (i = 0; i < files.length; i++) {
-            if (files[i].getAbsolutePath().startsWith(mDeviceRoot)) {
-                Log.d(TAG, "Found new device: " + files[i]);
-                devices.add(files[i]);
-            }
-        }
-        return devices;
-    }
-
+    
+    /**
+     * 获取驱动名称
+     */
     public String getName() {
         return mDriverName;
     }
-
-    public String getmDeviceRoot() {
+    
+    /**
+     * 获取设备根路径
+     */
+    public String getRoot() {
         return mDeviceRoot;
+    }
+    
+    /**
+     * 获取该驱动下的所有设备
+     */
+    public ArrayList<File> getDevices() {
+        ArrayList<File> devices = new ArrayList<>();
+        File dev = new File("/dev");
+        File[] files = dev.listFiles();
+        
+        if (files != null) {
+            for (File file : files) {
+                if (file.getAbsolutePath().startsWith(mDeviceRoot)) {
+                    devices.add(file);
+                }
+            }
+        }
+        
+        return devices;
+    }
+    
+    @Override
+    public String toString() {
+        return "Driver{" +
+                "name='" + mDriverName + '\'' +
+                ", root='" + mDeviceRoot + '\'' +
+                '}';
     }
 }

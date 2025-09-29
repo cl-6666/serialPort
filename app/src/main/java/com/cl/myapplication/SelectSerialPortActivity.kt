@@ -6,28 +6,30 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import com.cl.myapplication.adapter.DeviceAdapter
+import com.cl.myapplication.databinding.ActivitySelectSerialPortBinding
 import com.kongqw.serialportlibrary.SerialPortFinder
-import kotlinx.android.synthetic.main.activity_select_serial_port.*
 
 class SelectSerialPortActivity : AppCompatActivity(), OnItemClickListener {
 
 
     private var mDeviceAdapter: DeviceAdapter? = null
     val DEVICE = "device"
+    private lateinit var binding: ActivitySelectSerialPortBinding
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_select_serial_port)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_select_serial_port)
 
         val serialPortFinder = SerialPortFinder()
         val devices = serialPortFinder.devices
-        if (lv_devices != null) {
-            lv_devices.emptyView = tv_empty
+        if (binding.lvDevices != null) {
+            binding.lvDevices.emptyView = binding.tvEmpty
             mDeviceAdapter = DeviceAdapter(applicationContext, devices)
-            lv_devices.adapter = mDeviceAdapter
-            lv_devices.onItemClickListener = this
+            binding.lvDevices.adapter = mDeviceAdapter
+            binding.lvDevices.onItemClickListener = this
         }
 
     }

@@ -32,6 +32,32 @@ public class SpecifiedStickPackageHelper implements AbsStickPackageHelper {
         tailLen = tail.length;
         bytes = new ArrayList<>();
     }
+    
+    /**
+     * 构造函数 - 只使用结束标识
+     * @param tail 结束标识
+     */
+    public SpecifiedStickPackageHelper(byte[] tail) {
+        this(new byte[0], tail);
+    }
+    
+    /**
+     * 构造函数 - 字符串版本
+     * @param head 开始标识字符串
+     * @param tail 结束标识字符串
+     */
+    public SpecifiedStickPackageHelper(String head, String tail) {
+        this(head != null ? head.getBytes() : new byte[0], 
+             tail != null ? tail.getBytes() : new byte[0]);
+    }
+    
+    /**
+     * 构造函数 - 只使用结束标识字符串
+     * @param tail 结束标识字符串
+     */
+    public SpecifiedStickPackageHelper(String tail) {
+        this(new byte[0], tail != null ? tail.getBytes() : new byte[0]);
+    }
 
     private boolean endWith(Byte[] src, byte[] target) {
         if (src.length < target.length) {

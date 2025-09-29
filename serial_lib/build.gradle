@@ -1,17 +1,17 @@
 plugins {
     id 'com.android.library'
-    id 'maven-publish'
+    id 'org.jetbrains.kotlin.android'
 }
-
 android {
-    compileSdkVersion 29
-    buildToolsVersion "30.0.1"
+    namespace 'com.kongqw.serialportlibrary'
+    compileSdk 36
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 411
-        versionName "4.1.1"
+        minSdk 24
+        targetSdk 36
+        versionCode 500
+        versionName "5.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_TOOLCHAIN=clang'
@@ -47,33 +47,21 @@ android {
 
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '11'
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    api 'com.github.cl-6666:xlog:v3.0.0'
-    testImplementation 'junit:junit:4.12'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
 
-
-afterEvaluate {
-    publishing {
-        publications {
-            // Creates a Maven publication called "release".
-            release(MavenPublication) {
-                from components.release
-                groupId = 'com.github.jitpack'
-                artifactId = 'android-example'
-                version = '4.1.3'
-            }
-        }
-    }
-}
 

@@ -1,21 +1,18 @@
 package com.cl.myapplication;
 
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.FragmentManager;
 
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-
-import com.cl.log.XLog;
 import com.cl.myapplication.adapter.SpAdapter;
 import com.cl.myapplication.constant.PreferenceKeys;
 import com.cl.myapplication.databinding.ActivityMainJavaBinding;
@@ -28,29 +25,20 @@ import com.cl.myapplication.message.SendMessage;
 import com.cl.myapplication.util.PrefHelper;
 import com.hjq.toast.ToastUtils;
 import com.kongqw.serialportlibrary.Device;
-import com.kongqw.serialportlibrary.Driver;
-import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
 import com.kongqw.serialportlibrary.SerialPortFinder;
-import com.kongqw.serialportlibrary.SerialUtils;
-import com.kongqw.serialportlibrary.enumerate.SerialStatus;
-import com.kongqw.serialportlibrary.listener.SerialPortDirectorListens;
+import com.kongqw.serialportlibrary.SimpleSerialPortManager;
+import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class MainJavaActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private ActivityMainJavaBinding binding;
     private Device mDevice;
-    private byte[] b1 = {(byte) 33, (byte) -3};
-
-    private byte[] t = {(byte) 67, (byte) 72,(byte) 73,(byte) 78};
 
     private String[] mDevices;
     private String[] mBaudrates;
@@ -80,75 +68,6 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
         initFragment();
         initDevice();
         initSpinners();
-        //串口数据监听
-        SerialUtils.getInstance().setmSerialPortDirectorListens(new SerialPortDirectorListens() {
-            /**
-             *  接收回调
-             * @param bytes 接收到的数据
-             * @param serialPortEnum  串口类型
-             */
-            @Override
-            public void onDataReceived(byte[] bytes, SerialPortEnum serialPortEnum) {
-                XLog.i( "当前接收串口类型：" + serialPortEnum.name());
-                XLog.i( "onDataReceived [ byte[] ]: " + Arrays.toString(bytes));
-                XLog.i("onDataReceived [ String ]: " + new String(bytes));
-                if (mConversionNotice) {
-                    LogManager.instance().post(new RecvMessage(bytesToHex(bytes)));
-                } else {
-                    LogManager.instance().post(new RecvMessage(Arrays.toString(bytes)));
-                }
-            }
-
-            /**
-             *  发送回调
-             * @param bytes 发送的数据
-             * @param serialPortEnum  串口类型
-             */
-            @Override
-            public void onDataSent(byte[] bytes, SerialPortEnum serialPortEnum) {
-                XLog.i( "当前发送串口类型：" + serialPortEnum.name());
-                XLog.i( "onDataSent [ byte[] ]: " + Arrays.toString(bytes));
-                XLog.i( "onDataSent [ String ]: " + new String(bytes));
-                if (mConversionNotice) {
-                    LogManager.instance().post(new SendMessage(bytesToHex(bytes)));
-                } else {
-                    LogManager.instance().post(new SendMessage(Arrays.toString(bytes)));
-                }
-            }
-
-            /**
-             * 串口打开回调
-             * @param serialPortEnum  串口类型
-             * @param device  串口号
-             * @param status 打开状态
-             */
-            @Override
-            public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
-                XLog.i("TAG","串口打开状态："+device.getName()+"---打开状态："+status.name());
-                switch (serialPortEnum) {
-                    case SERIAL_ONE:
-                        switch (status) {
-                            case SUCCESS_OPENED:
-                                ToastUtils.show("串口打开成功");
-                                mOpened = true;
-                                updateViewState(true);
-                                break;
-                            case NO_READ_WRITE_PERMISSION:
-                                ToastUtils.show("没有读写权限");
-                                updateViewState(false);
-                                break;
-                            case OPEN_FAIL:
-                                ToastUtils.show("串口打开失败");
-                                updateViewState(false);
-                                break;
-                        }
-                        break;
-                    case SERIAL_TWO:
-                        XLog.i("根据实际多串口场景演示");
-                        break;
-                }
-            }
-        });
 
         //设置数据位
         SpAdapter spAdapter1 = new SpAdapter(this);
@@ -158,7 +77,9 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 closeSerialPort();
-                SerialUtils.getInstance().getmSerialConfig().setDatabits(Integer.parseInt(databits[position]));
+                int dataBitValue = Integer.parseInt(databits[position]);
+                SimpleSerialPortManager.getInstance().setDatabits(dataBitValue);
+                SerialPortLogUtil.i("MainJavaActivity", "设置数据位: " + dataBitValue);
             }
 
             @Override
@@ -175,17 +96,8 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 closeSerialPort();
-                if (position == 0) {
-                    SerialUtils.getInstance().getmSerialConfig().setParity(0);
-                } else if (position == 1) {
-                    SerialUtils.getInstance().getmSerialConfig().setParity(1);
-                } else if (position == 2) {
-                    SerialUtils.getInstance().getmSerialConfig().setParity(2);
-                } else if (position == 3) {
-                    SerialUtils.getInstance().getmSerialConfig().setParity(3);
-                } else if (position == 4) {
-                    SerialUtils.getInstance().getmSerialConfig().setParity(4);
-                }
+                SimpleSerialPortManager.getInstance().setParity(position);
+                SerialPortLogUtil.i("MainJavaActivity", "设置校验位: " + paritys[position] + " (值: " + position + ")");
             }
 
             @Override
@@ -202,7 +114,9 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 closeSerialPort();
-                SerialUtils.getInstance().getmSerialConfig().setStopbits(Integer.parseInt(stopbits[position]));
+                int stopBitValue = Integer.parseInt(stopbits[position]);
+                SimpleSerialPortManager.getInstance().setStopbits(stopBitValue);
+                SerialPortLogUtil.i("MainJavaActivity", "设置停止位: " + stopBitValue);
             }
 
             @Override
@@ -211,37 +125,85 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
             }
         });
 
-        //多串口演示
-//        List<Driver> list2=new ArrayList<>();
-//        //串口ttyS4
-//        list2.add(new Driver("/dev/ttyS4", "115200"));
-//        list2.add(new Driver("/dev/ttyS2", "115200"));
-////        list2.add(new Driver("/dev/ttyS4", "115200"));
-//        SerialUtils.getInstance().manyOpenSerialPort(list2);
-
-
-
         binding.btnOpenDevice.setOnClickListener(v -> {
             if (mOpened) {
                 closeSerialPort();
             } else {
-                //多串口演示
-                List<Driver> list = new ArrayList<>();
-                list.clear();
-                list.add(new Driver(mDevice.getName(), mDevice.getRoot()));
-                // 打开串口
-                XLog.i( "打开的串口为：" + mDevice.getName() + "----" + Integer.parseInt(mDevice.getRoot()));
-                SerialUtils.getInstance().manyOpenSerialPort(list);
+                openSerialPort();
             }
-            updateViewState(mOpened);
         });
 
         binding.btnSendData.setOnClickListener((view) -> {
             onSend();
         });
     }
+    
+    /**
+     * 打开串口
+     */
+    private void openSerialPort() {
+        String devicePath = mDevice.getName();
+        int baudRate = Integer.parseInt(mDevice.getRoot());
+        
+        SerialPortLogUtil.i("MainJavaActivity", "打开的串口为：" + devicePath + "----" + baudRate);
+        
+        // 使用SimpleSerialPortManager打开串口
+        boolean success = SimpleSerialPortManager.getInstance()
+                .openSerialPort(devicePath, baudRate,
+                        // 打开状态回调
+                        (isSuccess, status) -> {
+                            runOnUiThread(() -> {
+                                switch (status) {
+                                    case SUCCESS_OPENED:
+                                        ToastUtils.show("串口打开成功");
+                                        mOpened = true;
+                                        updateViewState(true);
+                                        break;
+                                    case NO_READ_WRITE_PERMISSION:
+                                        ToastUtils.show("没有读写权限");
+                                        updateViewState(false);
+                                        break;
+                                    case OPEN_FAIL:
+                                        ToastUtils.show("串口打开失败");
+                                        updateViewState(false);
+                                        break;
+                                }
+                            });
+                        },
+                        // 数据接收回调
+                        new SimpleSerialPortManager.OnDataReceivedCallback() {
+                            @Override
+                            public void onDataReceived(byte[] data) {
+                                SerialPortLogUtil.i("MainJavaActivity", "onDataReceived [ byte[] ]: " + Arrays.toString(data));
+                                SerialPortLogUtil.i("MainJavaActivity", "onDataReceived [ String ]: " + new String(data));
+                                
+                                runOnUiThread(() -> {
+                                    if (mConversionNotice) {
+                                        LogManager.instance().post(new RecvMessage(bytesToHex(data)));
+                                    } else {
+                                        LogManager.instance().post(new RecvMessage(Arrays.toString(data)));
+                                    }
+                                });
+                            }
+                            
+                            @Override
+                            public void onDataSent(byte[] data) {
+                                SerialPortLogUtil.i("MainJavaActivity", "onDataSent [ byte[] ]: " + Arrays.toString(data));
+                                SerialPortLogUtil.i("MainJavaActivity", "onDataSent [ String ]: " + new String(data));
+                                
+                                runOnUiThread(() -> {
+                                    if (mConversionNotice) {
+                                        LogManager.instance().post(new SendMessage(bytesToHex(data)));
+                                    } else {
+                                        LogManager.instance().post(new SendMessage(Arrays.toString(data)));
+                                    }
+                                });
+                            }
+                        });
+    }
+    
     private void closeSerialPort() {
-        SerialUtils.getInstance().serialPortClose();
+        SimpleSerialPortManager.getInstance().closeSerialPort();
         mOpened = false;
         updateViewState(mOpened);
     }
@@ -325,28 +287,25 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
     public void onSend() {
         String sendContent = binding.etData.getText().toString().trim();
         if (TextUtils.isEmpty(sendContent)) {
-            XLog.i( "onSend: 发送内容为 null");
+            SerialPortLogUtil.i("MainJavaActivity", "onSend: 发送内容为 null");
             return;
         }
         byte[] sendContentBytes = sendContent.getBytes();
-        //todo 这里默认发送一路串口，根据用户自定义
-        boolean sendBytes = SerialUtils.getInstance().sendData(SerialPortEnum.SERIAL_ONE, sendContentBytes);
-        XLog.i( "onSend: sendBytes = " + sendBytes);
-
+        // 使用SimpleSerialPortManager发送数据
+        boolean sendBytes = SimpleSerialPortManager.getInstance().sendData(sendContentBytes);
+        SerialPortLogUtil.i("MainJavaActivity", "onSend: sendBytes = " + sendBytes);
     }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         // Spinner 选择监听
-        switch (parent.getId()) {
-            case R.id.spinner_devices:
-                mDeviceIndex = position;
-                mDevice.setName(mDevices[mDeviceIndex]);
-                break;
-            case R.id.spinner_baudrate:
-                mBaudrateIndex = position;
-                mDevice.setRoot(mBaudrates[mBaudrateIndex]);
-                break;
+        int parentId = parent.getId();
+        if (parentId == R.id.spinner_devices) {
+            mDeviceIndex = position;
+            mDevice.setName(mDevices[mDeviceIndex]);
+        } else if (parentId == R.id.spinner_baudrate) {
+            mBaudrateIndex = position;
+            mDevice.setRoot(mBaudrates[mBaudrateIndex]);
         }
     }
 
@@ -357,7 +316,7 @@ public class MainJavaActivity extends AppCompatActivity implements AdapterView.O
 
     @Override
     protected void onDestroy() {
-        SerialUtils.getInstance().serialPortClose();
+        SimpleSerialPortManager.getInstance().closeSerialPort();
         super.onDestroy();
     }
 

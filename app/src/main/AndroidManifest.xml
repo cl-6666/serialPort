@@ -23,15 +23,27 @@
             android:name="design_height_in_dp"
             android:value="1920" />
 
-        <activity
-            android:name=".MainJavaActivity"
+        <activity android:name=".MultiSerialPortActivity"
             android:exported="true"
             android:screenOrientation="landscape">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name=".MainJavaActivity"
+            android:exported="true"
+            android:screenOrientation="landscape">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
         </activity>
 
         <!--查看哪些串口是否可用-->

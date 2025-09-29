@@ -5,14 +5,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 
 import com.cl.myapplication.R;
+import com.cl.myapplication.databinding.FragmentLogBinding;
 import com.cl.myapplication.message.ConversionNoticeEvent;
 import com.cl.myapplication.message.IMessage;
 import com.cl.myapplication.message.LogManager;
@@ -23,24 +23,18 @@ import org.greenrobot.eventbus.EventBus;
 
 public class LogFragment extends Fragment {
 
-    private Button mBtnClear;
-    private ListView mLvLogs;
     private LogAdapter mAdapter;
-
-    private Button mBtnAutoEnd;
-    private Button mWhetherHexadecimal;
-
     private boolean mConversionNotice = true;
+    private FragmentLogBinding binding;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_log, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_log, container, false);
 
-        mBtnClear = (Button) view.findViewById(R.id.btn_clear_log);
-        mBtnClear.setOnClickListener(new View.OnClickListener() {
+        binding.btnClearLog.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 清空列表
@@ -48,16 +42,16 @@ public class LogFragment extends Fragment {
                 updateList();
             }
         });
-        mBtnAutoEnd = (Button) view.findViewById(R.id.btn_auto_end);
-        mWhetherHexadecimal = (Button) view.findViewById(R.id.btn_whether_hexadecimal);
-        mBtnAutoEnd.setOnClickListener(new View.OnClickListener() {
+        
+        binding.btnAutoEnd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LogManager.instance().changAutoEnd();
                 updateAutoEndButton();
             }
         });
-        mWhetherHexadecimal.setOnClickListener((view1) -> {
+        
+        binding.btnWhetherHexadecimal.setOnClickListener((view1) -> {
             if (mConversionNotice){
                 EventBus.getDefault().post(new ConversionNoticeEvent("1"));
                 mConversionNotice=false;
@@ -67,21 +61,20 @@ public class LogFragment extends Fragment {
             }
         });
 
-        mLvLogs = (ListView) view.findViewById(R.id.lv_logs);
         mAdapter = new LogAdapter();
-        mLvLogs.setAdapter(mAdapter);
+        binding.lvLogs.setAdapter(mAdapter);
 
         updateAutoEndButton();
-        return view;
+        return binding.getRoot();
     }
 
     public void updateAutoEndButton() {
-        if (getView() != null) {
+        if (binding != null) {
             if (LogManager.instance().isAutoEnd()) {
-                mBtnAutoEnd.setText("禁止自动显示最新日志");
-                mLvLogs.setSelection(mAdapter.getCount() - 1);
+                binding.btnAutoEnd.setText("禁止自动显示最新日志");
+                binding.lvLogs.setSelection(mAdapter.getCount() - 1);
             } else {
-                mBtnAutoEnd.setText("自动显示最新日志");
+                binding.btnAutoEnd.setText("自动显示最新日志");
             }
         }
     }
@@ -134,10 +127,10 @@ public class LogFragment extends Fragment {
     }
 
     public void updateList() {
-        if (getView() != null) {
+        if (binding != null) {
             mAdapter.notifyDataSetChanged();
             if (LogManager.instance().isAutoEnd()) {
-                mLvLogs.setSelection(mAdapter.getCount() - 1);
+                binding.lvLogs.setSelection(mAdapter.getCount() - 1);
             }
         }
     }

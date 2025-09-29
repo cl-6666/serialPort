@@ -4,13 +4,18 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-import com.cl.log.XLog;
-import com.kongqw.serialportlibrary.enumerate.SerialErrorCode;
+import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
 import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
 import com.kongqw.serialportlibrary.enumerate.SerialStatus;
 import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener;
 import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener;
 import com.kongqw.serialportlibrary.thread.SerialPortReadThread;
+import com.kongqw.serialportlibrary.stick.AbsStickPackageHelper;
+import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import java.io.Closeable;
 import java.io.File;
@@ -33,9 +38,38 @@ public class SerialPortManager extends SerialPort {
     private SerialPortReadThread mSerialPortReadThread;
     //串口类型
     private final SerialPortEnum mSerialPortEnum;
+    //串口配置
+    private SerialConfig mSerialConfig;
+    //粘包处理器
+    private List<AbsStickPackageHelper> mStickPackageHelpers;
+
+    public SerialPortManager() {
+        this(SerialPortEnum.SERIAL_ONE);
+    }
 
     public SerialPortManager(SerialPortEnum mSerialPortEnum) {
         this.mSerialPortEnum = mSerialPortEnum;
+        this.mStickPackageHelpers = new ArrayList<>();
+        this.mStickPackageHelpers.add(new BaseStickPackageHelper());
+    }
+    
+    /**
+     * 设置串口配置
+     */
+    public void setSerialConfig(SerialConfig config) {
+        this.mSerialConfig = config;
+        if (config.getStickyPacketHelpers() != null && config.getStickyPacketHelpers().length > 0) {
+            this.mStickPackageHelpers = Arrays.asList(config.getStickyPacketHelpers());
+        }
+    }
+    
+    /**
+     * 设置粘包处理器
+     */
+    public void setStickPackageHelpers(List<AbsStickPackageHelper> helpers) {
+        if (helpers != null) {
+            this.mStickPackageHelpers = helpers;
+        }
     }
 
     /**
@@ -46,19 +80,23 @@ public class SerialPortManager extends SerialPort {
      */
     public boolean openSerialPort(String devicePath, int baudRate) {
         closeSerialPort();
-        XLog.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", devicePath, baudRate));
+        SerialPortLogUtil.i(TAG, "openSerialPort: " + String.format("打开串口 %s  波特率 %s", devicePath, baudRate));
         // 校验串口权限
         if (!checkSerialPortPermission(devicePath)) {
             return false;
         }
         try {
-            mFd = open(devicePath, baudRate, SerialUtils.getInstance().getmSerialConfig().getFlags(),
-                    SerialUtils.getInstance().getmSerialConfig().getDatabits(),
-                    SerialUtils.getInstance().getmSerialConfig().getStopbits(),
-                    SerialUtils.getInstance().getmSerialConfig().getParity());
+            // 使用配置参数或默认值
+            int flags = mSerialConfig != null ? mSerialConfig.getFlags() : 0;
+            int databits = mSerialConfig != null ? mSerialConfig.getDatabits() : 8;
+            int stopbits = mSerialConfig != null ? mSerialConfig.getStopbits() : 1;
+            int parity = mSerialConfig != null ? mSerialConfig.getParity() : 0;
+            
+            SerialPortLogUtil.d(TAG, "串口参数 - flags: " + flags + ", databits: " + databits + ", stopbits: " + stopbits + ", parity: " + parity);
+            mFd = open(devicePath, baudRate, flags, databits, stopbits, parity);
             mFileInputStream = new FileInputStream(mFd);
             mFileOutputStream = new FileOutputStream(mFd);
-            XLog.i(TAG, "openSerialPort: 串口已经打开 " + mFd);
+            SerialPortLogUtil.i(TAG, "openSerialPort: 串口已经打开 " + mFd);
             notifySerialPortOpened(new File(devicePath), SerialStatus.SUCCESS_OPENED);
             // 开启发送消息的线程
             startSendThread();
@@ -83,8 +121,8 @@ public class SerialPortManager extends SerialPort {
         if (!deviceFile.canRead() || !deviceFile.canWrite()) {
             boolean chmod777 = chmod777(deviceFile);
             if (!chmod777) {
+                SerialPortLogUtil.e(TAG, "串口权限不足: " + devicePath);
                 notifySerialPortOpened(deviceFile, SerialStatus.NO_READ_WRITE_PERMISSION);
-                SerialUtils.getInstance().handleError(SerialErrorCode.PERMISSION_DENIED);
                 return false;
             }
         }
@@ -103,6 +141,13 @@ public class SerialPortManager extends SerialPort {
         }
     }
 
+    /**
+     * 检查串口是否已打开
+     */
+    public boolean isOpen() {
+        return mFd != null && mFileInputStream != null && mFileOutputStream != null;
+    }
+    
     /**
      * 关闭串口
      */
@@ -199,7 +244,7 @@ public class SerialPortManager extends SerialPort {
      * 开启接收消息的线程
      */
     private void startReadThread() {
-        mSerialPortReadThread = new SerialPortReadThread(mFileInputStream,mSerialPortEnum) {
+        mSerialPortReadThread = new SerialPortReadThread(mFileInputStream, mSerialPortEnum, mStickPackageHelpers) {
             @Override
             public void onDataReceived(byte[] bytes) {
                 if (null != mOnSerialPortDataListener) {
@@ -208,6 +253,7 @@ public class SerialPortManager extends SerialPort {
             }
         };
         mSerialPortReadThread.start();
+        SerialPortLogUtil.d(TAG, "启动数据接收线程");
     }
 
     /**

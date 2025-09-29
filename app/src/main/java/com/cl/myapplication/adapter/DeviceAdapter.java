@@ -5,9 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.TextView;
+
+import androidx.databinding.DataBindingUtil;
 
 import com.cl.myapplication.R;
+import com.cl.myapplication.databinding.ItemDeviceBinding;
 import com.kongqw.serialportlibrary.Device;
 
 import java.io.File;
@@ -43,14 +45,13 @@ public class DeviceAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
+        ItemDeviceBinding binding;
         if (null == convertView) {
-            holder = new ViewHolder();
-            convertView = mInflater.inflate(R.layout.item_device, null);
-            holder.device = (TextView) convertView.findViewById(R.id.tv_device);
-            convertView.setTag(holder);
+            binding = DataBindingUtil.inflate(mInflater, R.layout.item_device, parent, false);
+            convertView = binding.getRoot();
+            convertView.setTag(binding);
         } else {
-            holder = (ViewHolder) convertView.getTag();
+            binding = (ItemDeviceBinding) convertView.getTag();
         }
 
         String deviceName = devices.get(position).getName();
@@ -68,12 +69,8 @@ public class DeviceAdapter extends BaseAdapter {
         permission.append(canExecute ? " 可执行 " : " 不可执行 ");
         permission.append("]");
 
-        holder.device.setText(String.format("%s [%s] (%s)  %s", deviceName, driverName, path, permission));
+        binding.tvDevice.setText(String.format("%s [%s] (%s)  %s", deviceName, driverName, path, permission));
 
         return convertView;
-    }
-
-    private class ViewHolder {
-        TextView device;
     }
 }

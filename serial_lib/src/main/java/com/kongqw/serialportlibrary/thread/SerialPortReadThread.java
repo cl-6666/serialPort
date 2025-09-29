@@ -1,12 +1,13 @@
 package com.kongqw.serialportlibrary.thread;
 
-import com.cl.log.XLog;
-import com.kongqw.serialportlibrary.SerialUtils;
-import com.kongqw.serialportlibrary.enumerate.SerialErrorCode;
+import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
 import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
+import com.kongqw.serialportlibrary.stick.AbsStickPackageHelper;
+import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 
 /**
@@ -18,24 +19,50 @@ public abstract class SerialPortReadThread extends Thread {
 
     private InputStream mInputStream;
     private SerialPortEnum mSerialPortEnum;
+    private List<AbsStickPackageHelper> mStickPackageHelpers;
 
-    public SerialPortReadThread(InputStream inputStream, SerialPortEnum mSerialPortEnum) {
+    public SerialPortReadThread(InputStream inputStream, SerialPortEnum mSerialPortEnum, List<AbsStickPackageHelper> stickPackageHelpers) {
         mInputStream = inputStream;
         this.mSerialPortEnum = mSerialPortEnum;
+        this.mStickPackageHelpers = stickPackageHelpers;
+        
+        // 如果没有提供粘包处理器，使用默认的
+        if (this.mStickPackageHelpers == null || this.mStickPackageHelpers.isEmpty()) {
+            this.mStickPackageHelpers = new java.util.ArrayList<>();
+            this.mStickPackageHelpers.add(new BaseStickPackageHelper());
+        }
     }
 
     @Override
     public void run() {
         if (mInputStream == null) return;
         while (!Thread.currentThread().isInterrupted()) {
-            if (SerialUtils.getInstance().getStickPackageHelper().size() >= mSerialPortEnum.ordinal()+1){
-                byte[] buffer = SerialUtils.getInstance().getStickPackageHelper()
-                        .get(mSerialPortEnum.ordinal()).execute(mInputStream);
-                if (buffer != null && buffer.length > 0) {
-                    onDataReceived(buffer);
+            try {
+                if (mStickPackageHelpers.size() > mSerialPortEnum.ordinal()) {
+                    AbsStickPackageHelper helper = mStickPackageHelpers.get(mSerialPortEnum.ordinal());
+                    byte[] buffer = helper.execute(mInputStream);
+                    if (buffer != null && buffer.length > 0) {
+                        SerialPortLogUtil.d("SerialPortReadThread", "接收数据，长度: " + buffer.length);
+                        onDataReceived(buffer);
+                    }
+                } else {
+                    // 使用第一个处理器作为默认
+                    if (!mStickPackageHelpers.isEmpty()) {
+                        AbsStickPackageHelper helper = mStickPackageHelpers.get(0);
+                        byte[] buffer = helper.execute(mInputStream);
+                        if (buffer != null && buffer.length > 0) {
+                            SerialPortLogUtil.d("SerialPortReadThread", "接收数据(默认处理器)，长度: " + buffer.length);
+                            onDataReceived(buffer);
+                        }
+                    } else {
+                        SerialPortLogUtil.e("SerialPortReadThread", "没有可用的粘包处理器");
+                        break;
+                    }
                 }
-            }else {
-                SerialUtils.getInstance().handleError(SerialErrorCode.STICK_PACKAGE_CONFIG_ERROR);
+            } catch (Exception e) {
+                SerialPortLogUtil.e("SerialPortReadThread", "读取数据异常: " + e.getMessage());
+                e.printStackTrace();
+                break;
             }
         }
     }

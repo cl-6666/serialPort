@@ -1,9 +1,8 @@
 package com.kongqw.serialportlibrary.stick;
 
 import android.os.SystemClock;
-import android.util.Log;
 
-import com.kongqw.serialportlibrary.SerialUtils;
+import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,9 +25,9 @@ public class BaseStickPackageHelper implements AbsStickPackageHelper {
                 if (size > 0) {
                     return buffer;
                 }
-                Log.i("tag","原始数据："+ buffer);
+                SerialPortLogUtil.d("BaseStickPackageHelper", "原始数据长度: " + buffer.length);
             } else {
-                SystemClock.sleep( SerialUtils.getInstance().getmSerialConfig().getIntervalSleep());
+                SystemClock.sleep(50); // 默认50ms间隔
             }
 
         } catch (IOException e) {

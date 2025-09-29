@@ -5,9 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.TextView;
+
+import androidx.databinding.DataBindingUtil;
 
 import com.cl.myapplication.R;
+import com.cl.myapplication.databinding.ItemDeviceBinding;
 
 
 public class SpAdapter extends BaseAdapter {
@@ -41,22 +43,17 @@ public class SpAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHodler hodler = null;
+        ItemDeviceBinding binding;
         if (convertView == null) {
-            hodler = new ViewHodler();
-            convertView = LayoutInflater.from(mContext).inflate(R.layout.item_device, null);
-            hodler.mTextView = (TextView) convertView.findViewById(R.id.tv_device);
-            convertView.setTag(hodler);
+            binding = DataBindingUtil.inflate(LayoutInflater.from(mContext), R.layout.item_device, parent, false);
+            convertView = binding.getRoot();
+            convertView.setTag(binding);
         } else {
-            hodler = (ViewHodler) convertView.getTag();
+            binding = (ItemDeviceBinding) convertView.getTag();
         }
 
-        hodler.mTextView.setText(datas[position]);
+        binding.tvDevice.setText(datas[position]);
 
         return convertView;
-    }
-
-    private static class ViewHodler {
-        TextView mTextView;
     }
 }
