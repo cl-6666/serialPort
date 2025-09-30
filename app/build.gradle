@@ -48,6 +48,8 @@ dependencies {
     implementation 'com.github.getActivity:ToastUtils:9.6'
     implementation 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation project(path: ':serial_lib')
+//    implementation project(path: ':serial_lib')
+
+    implementation 'com.github.cl-6666:serialPort:v5.0.6'
 
 }
