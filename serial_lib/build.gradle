@@ -10,8 +10,8 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 506
+        versionName "5.0.6"
         consumerProguardFiles "consumer-rules.pro"
     }
     
@@ -40,5 +40,45 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId = 'com.github.cl-6666'
+                artifactId = 'serialPort'
+                version = '5.0.6'
+                
+                artifact bundleReleaseAar
+                
+                pom {
+                    name = 'SerialPort Library'
+                    description = 'Android Serial Port Library with JNI support'
+                    url = 'https://github.com/cl-6666/serialPort'
+                    
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id = 'cl-6666'
+                            name = 'cl-6666'
+                        }
+                    }
+                    
+                    scm {
+                        connection = 'scm:git:git://github.com/cl-6666/serialPort.git'
+                        developerConnection = 'scm:git:ssh://github.com:cl-6666/serialPort.git'
+                        url = 'https://github.com/cl-6666/serialPort/tree/master'
+                    }
+                }
+            }
+        }
+    }
 }
 
