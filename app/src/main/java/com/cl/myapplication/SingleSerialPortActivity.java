@@ -35,7 +35,10 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Arrays;
 
-public class MainJavaActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+/**
+ * 单串口演示
+ */
+public class SingleSerialPortActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private ActivityMainJavaBinding binding;
     private Device mDevice;

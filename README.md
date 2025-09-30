@@ -443,23 +443,6 @@ SimpleSerialPortManager.getInstance()
 - **博客**: https://blog.csdn.net/a214024475/article/details/113735085
 - **GitHub**: https://github.com/cl-6666/serialPort
 
-## 🎉 效果展示
-
-### 第三方测试报告
-<div style="display:flex; justify-content:center;">
-    <img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance1.png" alt="性能测试1" style="width:45%;">
-    <img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance2.png" alt="性能测试2" style="width:45%;">
-</div>
-
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/test_erformance3.png" width="440" height="320" alt="性能测试3"/>
-
-### 自测结果
-- **测试机型**: RK3399  
-- **测试系统**: Android 8  
-- **测试时间**: 持续心跳发送一个星期，无任何问题  
-
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/sample_picture.png" width="650" height="360" alt="演示效果"/>
-
 
 ### PC端串口调试助手
 <img src="https://github.com/cl-6666/serialPort/blob/master/img/pc_ck.jpg" width="440" height="320" alt="PC调试助手"/>
