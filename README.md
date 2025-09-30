@@ -6,6 +6,9 @@
 
 > 一个灵活、高效并且轻量的Android串口通信框架，让串口操作变得简单易用。支持单串口、多串口、粘包处理、自定义配置等功能。
 
+<img src="https://github.com/cl-6666/serialPort/blob/master/img/multiple_images.png" width="650" height="360" alt="演示"/>  
+
+
 ## ⭐ 特性
 
 - 🚀 **简单易用** - 链式调用，一行代码完成配置
@@ -38,7 +41,7 @@
 
 ```gradle
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:5.0.0'
+   implementation 'com.github.cl-6666:serialPort:v5.0.6'
 }
 ```
 
