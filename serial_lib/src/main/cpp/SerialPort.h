@@ -13,7 +13,7 @@ extern "C" {
  * Method:    open
  * Signature: (Ljava/lang/String;II)Ljava/io/FileDescriptor;
  */
-JNIEXPORT jobject JNICALL Java_com_kongqw_serialportlibrary_SerialPort_open
+JNIEXPORT jobject JNICALL Java_com_cl_serialportlibrary_SerialPort_open
   (JNIEnv *, jclass, jstring, jint, jint,jint,jint,jint);
 
 /*
@@ -21,7 +21,7 @@ JNIEXPORT jobject JNICALL Java_com_kongqw_serialportlibrary_SerialPort_open
  * Method:    close
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_com_kongqw_serialportlibrary_SerialPort_close
+JNIEXPORT void JNICALL Java_com_cl_serialportlibrary_SerialPort_close
   (JNIEnv *, jobject);
 
 #ifdef __cplusplus

@@ -1,15 +1,15 @@
-package com.kongqw.serialportlibrary.example;
+package com.cl.serialportlibrary.example;
 
 import android.app.Application;
 import android.util.Log;
 
-import com.kongqw.serialportlibrary.MultiSerialPortManager;
-import com.kongqw.serialportlibrary.enumerate.SerialStatus;
-import com.kongqw.serialportlibrary.stick.AbsStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.SpecifiedStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.StaticLenStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.StickyPacketHelperFactory;
+import com.cl.serialportlibrary.MultiSerialPortManager;
+import com.cl.serialportlibrary.enumerate.SerialStatus;
+import com.cl.serialportlibrary.stick.AbsStickPackageHelper;
+import com.cl.serialportlibrary.stick.BaseStickPackageHelper;
+import com.cl.serialportlibrary.stick.SpecifiedStickPackageHelper;
+import com.cl.serialportlibrary.stick.StaticLenStickPackageHelper;
+import com.cl.serialportlibrary.stick.StickyPacketHelperFactory;
 
 /**
  * 多串口使用示例

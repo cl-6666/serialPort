@@ -1,4 +1,4 @@
-package com.kongqw.serialportlibrary.enumerate;
+package com.cl.serialportlibrary.enumerate;
 
 /**
  * name：cl

@@ -1,7 +1,7 @@
-package com.kongqw.serialportlibrary.listener;
+package com.cl.serialportlibrary.listener;
 
-import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
-import com.kongqw.serialportlibrary.enumerate.SerialStatus;
+import com.cl.serialportlibrary.enumerate.SerialPortEnum;
+import com.cl.serialportlibrary.enumerate.SerialStatus;
 
 import java.io.File;
 

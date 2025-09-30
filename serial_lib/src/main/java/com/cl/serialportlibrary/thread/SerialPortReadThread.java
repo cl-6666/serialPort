@@ -1,9 +1,9 @@
-package com.kongqw.serialportlibrary.thread;
+package com.cl.serialportlibrary.thread;
 
-import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
-import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
-import com.kongqw.serialportlibrary.stick.AbsStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil;
+import com.cl.serialportlibrary.enumerate.SerialPortEnum;
+import com.cl.serialportlibrary.stick.AbsStickPackageHelper;
+import com.cl.serialportlibrary.stick.BaseStickPackageHelper;
 
 import java.io.IOException;
 import java.io.InputStream;

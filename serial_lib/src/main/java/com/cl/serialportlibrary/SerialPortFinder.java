@@ -1,7 +1,7 @@
-package com.kongqw.serialportlibrary;
+package com.cl.serialportlibrary;
 
 
-import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil;
 
 import java.io.File;
 import java.io.FileReader;

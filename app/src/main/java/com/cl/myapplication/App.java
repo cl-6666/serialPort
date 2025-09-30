@@ -3,7 +3,7 @@ package com.cl.myapplication;
 import android.app.Application;
 
 import com.hjq.toast.ToastUtils;
-import com.kongqw.serialportlibrary.SimpleSerialPortManager;
+import com.cl.serialportlibrary.SimpleSerialPortManager;
 
 /**
  * 项目：serialPort

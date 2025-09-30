@@ -1,6 +1,6 @@
-package com.kongqw.serialportlibrary.listener;
+package com.cl.serialportlibrary.listener;
 
-import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
+import com.cl.serialportlibrary.enumerate.SerialPortEnum;
 
 /**
  * 串口消息监听

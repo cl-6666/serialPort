@@ -1,8 +1,8 @@
-package com.kongqw.serialportlibrary.stick;
+package com.cl.serialportlibrary.stick;
 
 import android.os.SystemClock;
 
-import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil;
 
 import java.io.IOException;
 import java.io.InputStream;

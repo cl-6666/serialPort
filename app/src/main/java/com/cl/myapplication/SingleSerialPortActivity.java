@@ -24,10 +24,10 @@ import com.cl.myapplication.message.RecvMessage;
 import com.cl.myapplication.message.SendMessage;
 import com.cl.myapplication.util.PrefHelper;
 import com.hjq.toast.ToastUtils;
-import com.kongqw.serialportlibrary.Device;
-import com.kongqw.serialportlibrary.SerialPortFinder;
-import com.kongqw.serialportlibrary.SimpleSerialPortManager;
-import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
+import com.cl.serialportlibrary.Device;
+import com.cl.serialportlibrary.SerialPortFinder;
+import com.cl.serialportlibrary.SimpleSerialPortManager;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;

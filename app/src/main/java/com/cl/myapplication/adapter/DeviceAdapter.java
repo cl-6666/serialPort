@@ -10,7 +10,7 @@ import androidx.databinding.DataBindingUtil;
 
 import com.cl.myapplication.R;
 import com.cl.myapplication.databinding.ItemDeviceBinding;
-import com.kongqw.serialportlibrary.Device;
+import com.cl.serialportlibrary.Device;
 
 import java.io.File;
 import java.util.ArrayList;

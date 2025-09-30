@@ -1,17 +1,17 @@
-package com.kongqw.serialportlibrary;
+package com.cl.serialportlibrary;
 
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-import com.kongqw.serialportlibrary.utils.SerialPortLogUtil;
-import com.kongqw.serialportlibrary.enumerate.SerialPortEnum;
-import com.kongqw.serialportlibrary.enumerate.SerialStatus;
-import com.kongqw.serialportlibrary.listener.OnOpenSerialPortListener;
-import com.kongqw.serialportlibrary.listener.OnSerialPortDataListener;
-import com.kongqw.serialportlibrary.thread.SerialPortReadThread;
-import com.kongqw.serialportlibrary.stick.AbsStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil;
+import com.cl.serialportlibrary.enumerate.SerialPortEnum;
+import com.cl.serialportlibrary.enumerate.SerialStatus;
+import com.cl.serialportlibrary.listener.OnOpenSerialPortListener;
+import com.cl.serialportlibrary.listener.OnSerialPortDataListener;
+import com.cl.serialportlibrary.thread.SerialPortReadThread;
+import com.cl.serialportlibrary.stick.AbsStickPackageHelper;
+import com.cl.serialportlibrary.stick.BaseStickPackageHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;

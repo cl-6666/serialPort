@@ -1,4 +1,4 @@
-package com.kongqw.serialportlibrary.stick;
+package com.cl.serialportlibrary.stick;
 
 import java.io.IOException;
 import java.io.InputStream;

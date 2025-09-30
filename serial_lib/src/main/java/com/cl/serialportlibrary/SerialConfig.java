@@ -1,7 +1,7 @@
-package com.kongqw.serialportlibrary;
+package com.cl.serialportlibrary;
 
-import com.kongqw.serialportlibrary.stick.AbsStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
+import com.cl.serialportlibrary.stick.AbsStickPackageHelper;
+import com.cl.serialportlibrary.stick.BaseStickPackageHelper;
 
 /**
  * name：cl

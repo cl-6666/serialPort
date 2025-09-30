@@ -14,14 +14,14 @@ import androidx.databinding.DataBindingUtil;
 
 import com.cl.myapplication.adapter.SpAdapter;
 import com.cl.myapplication.databinding.ActivityMultiSerialBinding;
-import com.kongqw.serialportlibrary.MultiSerialPortManager;
-import com.kongqw.serialportlibrary.SerialPortFinder;
-import com.kongqw.serialportlibrary.SimpleSerialPortManager;
-import com.kongqw.serialportlibrary.enumerate.SerialStatus;
-import com.kongqw.serialportlibrary.stick.AbsStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.BaseStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.SpecifiedStickPackageHelper;
-import com.kongqw.serialportlibrary.stick.StaticLenStickPackageHelper;
+import com.cl.serialportlibrary.MultiSerialPortManager;
+import com.cl.serialportlibrary.SerialPortFinder;
+import com.cl.serialportlibrary.SimpleSerialPortManager;
+import com.cl.serialportlibrary.enumerate.SerialStatus;
+import com.cl.serialportlibrary.stick.AbsStickPackageHelper;
+import com.cl.serialportlibrary.stick.BaseStickPackageHelper;
+import com.cl.serialportlibrary.stick.SpecifiedStickPackageHelper;
+import com.cl.serialportlibrary.stick.StaticLenStickPackageHelper;
 
 /**
  * 多串口演示Activity

@@ -1,4 +1,4 @@
-package com.kongqw.serialportlibrary.utils;
+package com.cl.serialportlibrary.utils;
 
 import android.util.Log;
 

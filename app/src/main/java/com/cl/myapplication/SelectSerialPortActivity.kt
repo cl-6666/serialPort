@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.cl.myapplication.adapter.DeviceAdapter
 import com.cl.myapplication.databinding.ActivitySelectSerialPortBinding
-import com.kongqw.serialportlibrary.SerialPortFinder
+import com.cl.serialportlibrary.SerialPortFinder
 
 class SelectSerialPortActivity : AppCompatActivity(), OnItemClickListener {
 
