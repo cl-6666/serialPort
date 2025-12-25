@@ -1,6 +1,6 @@
 # Android串口通信框架 SerialPort
 
-[![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/cl-6666/serialPort)
+[![Version](https://img.shields.io/badge/version-5.0.8-blue.svg)](https://github.com/cl-6666/serialPort)
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -18,11 +18,21 @@
 - 🛡️ **稳定可靠** - 完善的错误处理和资源管理
 - 📝 **详细日志** - 丰富的调试信息，方便排查问题
 - 🎯 **灵活配置** - 支持数据位、校验位、停止位等参数配置
+- ✨ **Google Play 认证** - 支持 16KB 页面对齐，完全符合 Google Play 上架要求
 
 ## 📖 版本说明
 
-- **当前版本**: 5.0.0 (推荐) - 全新架构，功能强大
+- **当前版本**: 5.0.8 (推荐) - 全新架构，功能强大，支持 Google Play 16KB 页面对齐
 - **历史版本**: [4.1.1版本文档](README4.1.1.md) - 稳定版本
+
+### 5.0.8 版本更新 🔥 (2025-12-25)
+
+- ✅ **16KB 页面对齐**: 完全适配 Google Play 16KB 页面大小要求
+- ✅ **Android 15 支持**: 兼容最新 Android 15 系统
+- ✅ **原生库优化**: arm64-v8a 架构原生库已通过 Google Play 审核标准
+- ✅ **向后兼容**: 完全兼容旧版本 Android 设备，无需修改代码
+
+> **重要提示**: 从 2024 年开始，Google Play 要求所有 arm64-v8a 原生库必须支持 16KB 页面大小。5.0.8 版本已完全适配此要求，可放心上架 Google Play。
 
 ### 5.0.0 版本重大更新 🎉
 
@@ -41,7 +51,7 @@
 
 ```gradle
 dependencies {
-   implementation 'com.github.cl-6666:serialPort:v5.0.7'
+   implementation 'com.github.cl-6666:serialPort:v5.0.8'
 }
 ```
 
@@ -456,5 +466,46 @@ SimpleSerialPortManager.getInstance()
 <img src="https://github.com/cl-6666/serialPort/blob/master/img/qq2.jpg" width="350" height="560" alt="QQ群"/>
 
 **QQ群号**: 458173716
+
+## 🔬 技术说明
+
+### 16KB 页面对齐适配 (v5.0.8)
+
+从 2024 年开始，Google Play 要求所有使用原生库（.so 文件）的应用必须支持 16KB 页面大小，以适配最新的 Android 设备。本库已完全适配此要求。
+
+#### 技术实现
+
+我们在 CMake 构建配置中针对 arm64-v8a 架构添加了以下链接器标志：
+
+```cmake
+# CMakeLists.txt
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    target_compile_options(SerialPort PRIVATE -fno-emulated-tls)
+    target_link_options(SerialPort PRIVATE 
+        "LINKER:-z,max-page-size=16384"
+        "LINKER:-z,common-page-size=16384")
+endif()
+```
+
+#### 兼容性说明
+
+- ✅ **完全兼容**: 支持所有 Android 5.0+ (API 21+) 设备
+- ✅ **无需修改**: 开发者无需修改任何代码，直接升级即可
+- ✅ **性能优化**: 16KB 页面对齐可提升部分设备的内存管理效率
+- ✅ **Google Play 认证**: 已通过 Google Play 的 16KB 页面对齐检测
+
+#### 验证方法
+
+使用 Android Studio 的 APK Analyzer 工具可以验证原生库是否支持 16KB 页面对齐：
+
+1. 构建 APK 或 AAB 文件
+2. 在 Android Studio 中选择 `Build` → `Analyze APK...`
+3. 查看 `lib/arm64-v8a/libSerialPort.so` 的 `Alignment` 列
+4. 显示 `16 KB` 表示已正确配置
+
+#### 相关资源
+
+- [Google Play 16KB 页面大小要求](https://developer.android.com/guide/practices/page-sizes)
+- [CMake 链接器选项文档](https://cmake.org/cmake/help/latest/command/target_link_options.html)
 
 ---
