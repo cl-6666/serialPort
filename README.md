@@ -41,7 +41,7 @@
 
 ```gradle
 dependencies {
-   implementation 'com.github.cl-6666:serialPort:v5.0.6'
+   implementation 'com.github.cl-6666:serialPort:v5.0.7'
 }
 ```
 
