@@ -14,7 +14,7 @@
 
 <div align="center">
 
-### 📥 [点击下载演示 APK](https://github.com/cl-6666/serialPort/releases/download/v5.0.8/serialport-demo-v5.0.8.apk)
+### 📥 [点击下载演示 APK](https://www.pgyer.com/XNzY)
 
 [![Download APK](https://img.shields.io/badge/Download-APK%20v5.0.8-brightgreen.svg?style=for-the-badge&logo=android)](https://github.com/cl-6666/serialPort/releases/download/v5.0.8/serialport-demo-v5.0.8.apk)
 
