@@ -8,6 +8,31 @@
 
 <img src="https://github.com/cl-6666/serialPort/blob/master/img/multiple_images.png" width="650" height="360" alt="演示"/>  
 
+## 📱 体验演示
+
+想要快速体验串口通信框架的强大功能？直接下载演示 APK 安装到您的 Android 设备上试试吧！
+
+<div align="center">
+
+### 📥 [点击下载演示 APK](https://github.com/cl-6666/serialPort/releases/download/v5.0.8/serialport-demo-v5.0.8.apk)
+
+[![Download APK](https://img.shields.io/badge/Download-APK%20v5.0.8-brightgreen.svg?style=for-the-badge&logo=android)](https://github.com/cl-6666/serialPort/releases/download/v5.0.8/serialport-demo-v5.0.8.apk)
+
+**版本**: v5.0.8 | **大小**: ~7 MB | **API**: 21+ | **架构**: arm64-v8a, armeabi-v7a, x86, x86_64
+
+</div>
+
+### 演示 APK 功能
+
+- ✅ 单串口通信演示
+- ✅ 多串口管理演示
+- ✅ 粘包处理策略切换
+- ✅ 串口参数配置（数据位、校验位、停止位）
+- ✅ 实时数据收发测试
+- ✅ 十六进制/ASCII 数据显示
+- ✅ 性能测试与统计
+
+> **提示**: 演示 APK 需要在具有串口的 Android 设备上运行（如工控设备、开发板等）。如果您的设备没有串口，可以查看源码了解使用方法。
 
 ## ⭐ 特性
 
