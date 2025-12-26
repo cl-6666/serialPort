@@ -1,5 +1,7 @@
 # Android串口通信框架 SerialPort
 
+[中文](README.md) | [English](README_EN.md)
+
 [![Version](https://img.shields.io/badge/version-5.0.8-blue.svg)](https://github.com/cl-6666/serialPort)
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
@@ -16,7 +18,7 @@
 
 ### 📥 [点击下载演示 APK](https://www.pgyer.com/XNzY)
 
-[![Download APK](https://img.shields.io/badge/Download-APK%20v5.0.8-brightgreen.svg?style=for-the-badge&logo=android)](https://github.com/cl-6666/serialPort/releases/download/v5.0.8/serialport-demo-v5.0.8.apk)
+[![Download APK](https://img.shields.io/badge/Download-APK%20v5.0.8-brightgreen.svg?style=for-the-badge&logo=android)](https://www.pgyer.com/XNzY)
 
 **版本**: v5.0.8 | **大小**: ~7 MB | **API**: 21+ | **架构**: arm64-v8a, armeabi-v7a, x86, x86_64
 
