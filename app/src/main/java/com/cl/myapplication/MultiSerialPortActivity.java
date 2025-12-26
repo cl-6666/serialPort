@@ -20,8 +20,13 @@ import com.cl.serialportlibrary.SimpleSerialPortManager;
 import com.cl.serialportlibrary.enumerate.SerialStatus;
 import com.cl.serialportlibrary.stick.AbsStickPackageHelper;
 import com.cl.serialportlibrary.stick.BaseStickPackageHelper;
+import com.cl.serialportlibrary.stick.CompositeStickPackageHelper;
 import com.cl.serialportlibrary.stick.SpecifiedStickPackageHelper;
 import com.cl.serialportlibrary.stick.StaticLenStickPackageHelper;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * 多串口演示Activity
@@ -33,6 +38,9 @@ public class MultiSerialPortActivity extends AppCompatActivity {
     
     private ActivityMultiSerialBinding binding;
     private TextView statusText;
+    private TextView dataText;
+
+    private final SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault());
     
     // 串口设备列表
     private String[] mDevices;
@@ -73,6 +81,7 @@ public class MultiSerialPortActivity extends AppCompatActivity {
     
     private void initViews() {
         statusText = binding.tvStatus;
+        dataText = binding.tvData;
         
         // 设置按钮点击事件
         binding.btnRefreshPorts.setOnClickListener(v -> refreshSerialPorts());
@@ -99,54 +108,91 @@ public class MultiSerialPortActivity extends AppCompatActivity {
     private void sendTestData() {
         MultiSerialPortManager manager = SimpleSerialPortManager.multi();
         int sentCount = 0;
-        
+
         // 向GPS发送AT命令
         if (gpsOpened) {
-            manager.sendData("GPS", "AT+GPS?\r\n");
-            sentCount++;
+            boolean ok = manager.sendData("GPS", "AT+GPS?\r\n");
+            if (!ok) {
+                appendData("TX_FAIL [GPS] AT+GPS?\\r\\n");
+            }
+            if (ok) {
+                sentCount++;
+            }
         }
-        
+
         // 向传感器发送读取命令
         if (sensorOpened) {
-            manager.sendData("SENSOR", "READ_TEMP\n");
-            sentCount++;
+            boolean ok = manager.sendData("SENSOR", "READ_TEMP\n");
+            if (!ok) {
+                appendData("TX_FAIL [SENSOR] READ_TEMP\\n");
+            }
+            if (ok) {
+                sentCount++;
+            }
         }
-        
+
         // 向Modbus设备发送读取寄存器命令
         if (modbusOpened) {
             byte[] modbusCmd = {0x01, 0x03, 0x00, 0x00, 0x00, 0x01, (byte)0x84, 0x0A};
-            manager.sendData("MODBUS", modbusCmd);
-            sentCount++;
+            boolean ok = manager.sendData("MODBUS", modbusCmd);
+            if (!ok) {
+                appendData("TX_FAIL [MODBUS] " + bytesToHex(modbusCmd));
+            }
+            if (ok) {
+                sentCount++;
+            }
         }
-        
+
         // 向自定义协议设备发送命令
         if (customOpened) {
-            manager.sendData("CUSTOM", "$$START$$GET_STATUS$$END$$");
-            sentCount++;
+            String payload = "$$START$$GET_STATUS$$END$$";
+            boolean ok = manager.sendData("CUSTOM", payload);
+            if (!ok) {
+                appendData("TX_FAIL [CUSTOM] " + payload);
+            }
+            if (ok) {
+                sentCount++;
+            }
         }
-        
-        updateStatus("测试数据已发送到 " + sentCount + " 个已打开的串口");
+
+        updateStatus("测试数据发送请求已提交到 " + sentCount + " 个串口");
     }
     
     /**
      * 更新状态显示
      */
     private void updateStatus(String message) {
-        if (statusText != null) {
-            String currentText = statusText.getText().toString();
-            String newText = message + "\n" + currentText;
-            // 保持最多20行
-            String[] lines = newText.split("\n");
-            if (lines.length > 20) {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < 20; i++) {
-                    sb.append(lines[i]).append("\n");
-                }
-                newText = sb.toString();
-            }
-            statusText.setText(newText);
-        }
+        appendLog(statusText, message, 20);
         Log.i(TAG, message);
+    }
+
+    private void appendData(String message) {
+        appendLog(dataText, message, 200);
+    }
+
+    private void appendLog(TextView target, String message, int maxLines) {
+        if (target == null) {
+            return;
+        }
+        String time = timeFormatter.format(new Date());
+        String currentText = target.getText().toString();
+        String newText = time + " " + message + "\n" + currentText;
+        String[] lines = newText.split("\n");
+        if (lines.length > maxLines) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < maxLines; i++) {
+                sb.append(lines[i]).append("\n");
+            }
+            newText = sb.toString();
+        }
+        target.setText(newText);
+    }
+
+    private String sanitizeForSingleLine(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("\r", "\\r").replace("\n", "\\n");
     }
     
     /**
@@ -450,10 +496,10 @@ public class MultiSerialPortActivity extends AppCompatActivity {
             updateStatus("GPS串口：没有可用设备");
             return;
         }
-        
+
         MultiSerialPortManager manager = SimpleSerialPortManager.multi();
         int baudrate = Integer.parseInt(gpsConfig.baudrate);
-        
+
         manager.openSerialPort("GPS", gpsConfig.device, baudrate,
             new MultiSerialPortManager.SerialPortConfig.Builder()
                 .setDatabits(globalDatabits)
@@ -472,9 +518,17 @@ public class MultiSerialPortActivity extends AppCompatActivity {
             new MultiSerialPortManager.OnSerialPortDataCallback() {
                 @Override
                 public void onDataReceived(String serialId, byte[] data) {
-                    String gpsData = new String(data);
-                    Log.i(TAG, "GPS数据: " + gpsData);
-                    runOnUiThread(() -> updateStatus("GPS收到: " + gpsData));
+                    String text = sanitizeForSingleLine(new String(data));
+                    String hex = bytesToHex(data);
+                    Log.i(TAG, "GPS数据: " + text);
+                    runOnUiThread(() -> appendData("RX [" + serialId + "] len=" + data.length + " text=" + text + " hex=" + hex));
+                }
+
+                @Override
+                public void onDataSent(String serialId, byte[] data) {
+                    String text = sanitizeForSingleLine(new String(data));
+                    String hex = bytesToHex(data);
+                    runOnUiThread(() -> appendData("TX [" + serialId + "] len=" + data.length + " text=" + text + " hex=" + hex));
                 }
             });
     }
@@ -503,16 +557,18 @@ public class MultiSerialPortActivity extends AppCompatActivity {
             updateStatus("传感器串口：没有可用设备");
             return;
         }
-        
+
         MultiSerialPortManager manager = SimpleSerialPortManager.multi();
         int baudrate = Integer.parseInt(sensorConfig.baudrate);
-        
+
         manager.openSerialPort("SENSOR", sensorConfig.device, baudrate,
             new MultiSerialPortManager.SerialPortConfig.Builder()
                 .setDatabits(globalDatabits)
                 .setParity(globalParity)
                 .setStopbits(globalStopbits)
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\n"))
+                .setStickyPacketHelpers(new CompositeStickPackageHelper(
+                    new SpecifiedStickPackageHelper("\n"),
+                    new BaseStickPackageHelper()))
                 .build(),
             (serialId, success, status) -> {
                 sensorOpened = success;
@@ -525,9 +581,17 @@ public class MultiSerialPortActivity extends AppCompatActivity {
             new MultiSerialPortManager.OnSerialPortDataCallback() {
                 @Override
                 public void onDataReceived(String serialId, byte[] data) {
-                    String sensorData = new String(data).trim();
-                    Log.i(TAG, "传感器数据: " + sensorData);
-                    runOnUiThread(() -> updateStatus("传感器收到: " + sensorData));
+                    String text = sanitizeForSingleLine(new String(data).trim());
+                    String hex = bytesToHex(data);
+                    Log.i(TAG, "传感器数据: " + text);
+                    runOnUiThread(() -> appendData("RX [" + serialId + "] len=" + data.length + " text=" + text + " hex=" + hex));
+                }
+
+                @Override
+                public void onDataSent(String serialId, byte[] data) {
+                    String text = sanitizeForSingleLine(new String(data));
+                    String hex = bytesToHex(data);
+                    runOnUiThread(() -> appendData("TX [" + serialId + "] len=" + data.length + " text=" + text + " hex=" + hex));
                 }
             });
     }
@@ -556,16 +620,18 @@ public class MultiSerialPortActivity extends AppCompatActivity {
             updateStatus("Modbus串口：没有可用设备");
             return;
         }
-        
+
         MultiSerialPortManager manager = SimpleSerialPortManager.multi();
         int baudrate = Integer.parseInt(modbusConfig.baudrate);
-        
+
         manager.openSerialPort("MODBUS", modbusConfig.device, baudrate,
             new MultiSerialPortManager.SerialPortConfig.Builder()
                 .setDatabits(globalDatabits)
                 .setParity(globalParity)
                 .setStopbits(globalStopbits)
-                .setStickyPacketHelpers(new StaticLenStickPackageHelper(8))
+                .setStickyPacketHelpers(new CompositeStickPackageHelper(
+                    new StaticLenStickPackageHelper(8),
+                    new BaseStickPackageHelper()))
                 .build(),
             (serialId, success, status) -> {
                 modbusOpened = success;
@@ -580,7 +646,13 @@ public class MultiSerialPortActivity extends AppCompatActivity {
                 public void onDataReceived(String serialId, byte[] data) {
                     String modbusData = bytesToHex(data);
                     Log.i(TAG, "Modbus数据: " + modbusData);
-                    runOnUiThread(() -> updateStatus("Modbus收到: " + modbusData));
+                    runOnUiThread(() -> appendData("RX [" + serialId + "] len=" + data.length + " hex=" + modbusData));
+                }
+
+                @Override
+                public void onDataSent(String serialId, byte[] data) {
+                    String hex = bytesToHex(data);
+                    runOnUiThread(() -> appendData("TX [" + serialId + "] len=" + data.length + " hex=" + hex));
                 }
             });
     }
@@ -609,16 +681,18 @@ public class MultiSerialPortActivity extends AppCompatActivity {
             updateStatus("自定义串口：没有可用设备");
             return;
         }
-        
+
         MultiSerialPortManager manager = SimpleSerialPortManager.multi();
         int baudrate = Integer.parseInt(customConfig.baudrate);
-        
+
         manager.openSerialPort("CUSTOM", customConfig.device, baudrate,
             new MultiSerialPortManager.SerialPortConfig.Builder()
                 .setDatabits(globalDatabits)
                 .setParity(globalParity)
                 .setStopbits(globalStopbits)
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("$$START$$", "$$END$$"))
+                .setStickyPacketHelpers(new CompositeStickPackageHelper(
+                    new SpecifiedStickPackageHelper("$$START$$", "$$END$$"),
+                    new BaseStickPackageHelper()))
                 .build(),
             (serialId, success, status) -> {
                 customOpened = success;
@@ -631,9 +705,17 @@ public class MultiSerialPortActivity extends AppCompatActivity {
             new MultiSerialPortManager.OnSerialPortDataCallback() {
                 @Override
                 public void onDataReceived(String serialId, byte[] data) {
-                    String customData = new String(data);
-                    Log.i(TAG, "自定义协议数据: " + customData);
-                    runOnUiThread(() -> updateStatus("自定义协议收到: " + customData));
+                    String text = sanitizeForSingleLine(new String(data));
+                    String hex = bytesToHex(data);
+                    Log.i(TAG, "自定义协议数据: " + text);
+                    runOnUiThread(() -> appendData("RX [" + serialId + "] len=" + data.length + " text=" + text + " hex=" + hex));
+                }
+
+                @Override
+                public void onDataSent(String serialId, byte[] data) {
+                    String text = sanitizeForSingleLine(new String(data));
+                    String hex = bytesToHex(data);
+                    runOnUiThread(() -> appendData("TX [" + serialId + "] len=" + data.length + " text=" + text + " hex=" + hex));
                 }
             });
     }
@@ -671,7 +753,12 @@ public class MultiSerialPortActivity extends AppCompatActivity {
      * 清空日志
      */
     private void clearLog() {
-        statusText.setText("日志已清空");
+        if (statusText != null) {
+            statusText.setText("日志已清空");
+        }
+        if (dataText != null) {
+            dataText.setText("数据已清空");
+        }
     }
     
     /**

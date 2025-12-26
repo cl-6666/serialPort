@@ -665,6 +665,32 @@
 
                         </ScrollView>
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:layout_marginBottom="12dp"
+                            android:text="收发数据"
+                            android:textColor="@color/colorPrimary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <ScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="220dp">
+
+                            <TextView
+                                android:id="@+id/tv_data"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@color/log_bg"
+                                android:fontFamily="monospace"
+                                android:padding="12dp"
+                                android:text="等待数据..."
+                                android:textSize="12sp" />
+
+                        </ScrollView>
+
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>

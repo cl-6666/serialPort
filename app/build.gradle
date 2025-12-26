@@ -11,8 +11,8 @@ android {
         applicationId "com.cl.myapplication"
         minSdk 24
         targetSdk 36
-        versionCode 401
-        versionName "4.0.1"
+        versionCode 508
+        versionName "5.0.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -48,6 +48,6 @@ dependencies {
     implementation 'com.github.getActivity:ToastUtils:9.6'
     implementation 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation project(path: ':serial_lib')
-
+//    implementation project(path: ':serial_lib')
+    implementation 'com.github.cl-6666:serialPort:v5.0.8'
 }
