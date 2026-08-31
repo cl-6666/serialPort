@@ -14,6 +14,7 @@ import com.cl.serialportlibrary.SimpleSerialPortManager;
  */
 public class App extends Application {
 
+
     @Override
     public void onCreate() {
         super.onCreate();
