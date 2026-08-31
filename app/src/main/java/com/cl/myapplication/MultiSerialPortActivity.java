@@ -66,6 +66,7 @@ public class MultiSerialPortActivity extends AppCompatActivity {
     private boolean sensorOpened = false;
     private boolean modbusOpened = false;
     private boolean customOpened = false;
+
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
