@@ -1,12 +1,7 @@
-package com.cl.serialportlibrary.enumerate;
+package com.cl.serialportlibrary.enumerate
 
-/**
- * name：cl
- * date：2023/2/20
- * desc：
- */
-public enum SerialStatus {
+enum class SerialStatus {
     NO_READ_WRITE_PERMISSION,
     OPEN_FAIL,
-    SUCCESS_OPENED
+    SUCCESS_OPENED,
 }

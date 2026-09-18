@@ -1,38 +1,43 @@
-package com.cl.serialportlibrary.stick;
+package com.cl.serialportlibrary.stick
 
-import android.os.SystemClock;
-
-import com.cl.serialportlibrary.utils.SerialPortLogUtil;
-
-import java.io.IOException;
-import java.io.InputStream;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.IOException
+import java.io.InputStream
 
 /**
- * The simplest thing to do is not to deal with sticky packets,
- * read directly and return as much as InputStream.available() reads
+ * 不处理黏包，直接返回输入流当前可读取的数据。
  */
-public class BaseStickPackageHelper implements AbsStickPackageHelper {
-    public BaseStickPackageHelper() {
+open class BaseStickPackageHelper @JvmOverloads constructor(
+    private val readIntervalMillis: Long = DEFAULT_READ_INTERVAL_MS,
+) : AbsStickPackageHelper {
+
+    init {
+        require(readIntervalMillis > 0) { "readIntervalMillis must be greater than 0" }
     }
 
-    @Override
-    public byte[] execute(InputStream is) {
-        try {
-            int available = is.available();
+    override fun execute(inputStream: InputStream): ByteArray? {
+        return try {
+            val available = inputStream.available()
             if (available > 0) {
-                byte[] buffer = new byte[available];
-                int size = is.read(buffer);
+                val buffer = ByteArray(available)
+                val size = inputStream.read(buffer)
                 if (size > 0) {
-                    return buffer;
+                    if (size == buffer.size) buffer else buffer.copyOf(size)
+                } else {
+                    null
                 }
-                SerialPortLogUtil.d("BaseStickPackageHelper", "原始数据长度: " + buffer.length);
             } else {
-                SystemClock.sleep(50); // 默认50ms间隔
+                Thread.sleep(readIntervalMillis)
+                null
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (error: IOException) {
+            SerialPortLogUtil.e(TAG, "读取原始串口数据失败", error)
+            throw error
         }
-        return null;
+    }
+
+    private companion object {
+        private const val TAG = "BaseStickPackageHelper"
+        private const val DEFAULT_READ_INTERVAL_MS = 50L
     }
 }

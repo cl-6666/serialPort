@@ -1,100 +1,90 @@
-package com.cl.serialportlibrary.stick;
+package com.cl.serialportlibrary.stick
 
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.IOException
+import java.io.InputStream
+import java.nio.ByteOrder
+import java.util.ArrayList
 
 /**
- * Variable-length sticky packet processing, used in the protocol with a length field
- * Example: The protocol is: type+dataLen+data+md5
- * type: Named type, two bytes
- * dataLen: The length of the data field, two bytes
- * data: Data field, variable length, length dataLen
- * md5: md5 field, 8 bytes
- * Use: 1.byteOrder: first determine the big and small ends, ByteOrder.BIG_ENDIAN or ByteOrder.LITTLE_ENDIAN;
- * 2.lenSize: The length of the len field, 2 in this example
- * 3.lenIndex: The position of the len field, 2 in this example, because the len field is preceded by type, and its length is 2
- * 4.offset: the length of the entire package -len, this example is the length of the three fields of type+dataLen+md5, that is, 2+2+8=12
+ * 根据协议中的长度字段读取变长数据包。
  */
-public class VariableLenStickPackageHelper implements AbsStickPackageHelper {
-    private int offset = 0;
-    private int lenIndex = 0;
-    private int lenSize = 2;
-    private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
-    private final List<Byte> mBytes;
-    private final int lenStartIndex;
-    private final int lenEndIndex;
+open class VariableLenStickPackageHelper(
+    private var byteOrder: ByteOrder?,
+    private var lenSize: Int,
+    private var lenIndex: Int,
+    private var offset: Int,
+) : AbsStickPackageHelper {
 
-    public VariableLenStickPackageHelper(ByteOrder byteOrder, int lenSize, int lenIndex, int offset) {
-        this.byteOrder = byteOrder;
-        this.lenSize = lenSize;
-        this.offset = offset;
-        this.lenIndex = lenIndex;
-        mBytes = new ArrayList<>();
-        lenStartIndex = lenIndex;
-        lenEndIndex = lenIndex + lenSize - 1;
-        if (lenStartIndex > lenEndIndex) {
-            throw new IllegalStateException("lenStartIndex>lenEndIndex");
+    private val mBytes = ArrayList<Byte>()
+    private val lenStartIndex = lenIndex
+    private val lenEndIndex = lenIndex + lenSize - 1
+
+    init {
+        require(byteOrder != null) { "byteOrder must not be null" }
+        require(lenSize in 1..4) { "lenSize must be between 1 and 4" }
+        require(lenIndex >= 0) { "lenIndex must not be negative" }
+    }
+
+    override fun execute(inputStream: InputStream): ByteArray? {
+        mBytes.clear()
+        var count = 0
+        var messageLength = -1
+        val lengthField = ByteArray(lenSize)
+
+        try {
+            while (true) {
+                val readByte = inputStream.read()
+                if (readByte == -1) {
+                    return null
+                }
+                val value = readByte.toByte()
+                if (count in lenStartIndex..lenEndIndex) {
+                    lengthField[count - lenStartIndex] = value
+                    if (count == lenEndIndex) {
+                        messageLength = getLength(lengthField, byteOrder)
+                        val packetLength = messageLength.toLong() + offset.toLong()
+                        require(packetLength in 1..DEFAULT_MAX_PACKET_SIZE.toLong()) {
+                            "解析出的数据包长度非法: $packetLength"
+                        }
+                    }
+                }
+                count++
+                mBytes.add(value)
+                if (messageLength != -1) {
+                    if (count == messageLength + offset) {
+                        return mBytes.toByteArray()
+                    } else if (count > messageLength + offset) {
+                        return null
+                    }
+                }
+            }
+        } catch (error: IOException) {
+            SerialPortLogUtil.e(TAG, "读取变长数据包失败", error)
+            throw error
         }
     }
 
-    private int getLen(byte[] src, ByteOrder order) {
-        int re = 0;
+    private fun getLength(source: ByteArray, order: ByteOrder?): Int {
+        var result = 0
         if (order == ByteOrder.BIG_ENDIAN) {
-            for (byte b : src) {
-                re = (re << 8) | (b & 0xff);
+            for (value in source) {
+                result = result shl 8 or (value.toInt() and 0xff)
             }
         } else {
-            for (int i = src.length - 1; i >= 0; i--) {
-                re = (re << 8) | (src[i] & 0xff);
+            for (index in source.indices.reversed()) {
+                result = result shl 8 or (source[index].toInt() and 0xff)
             }
         }
-        return re;
+        return result
     }
 
-    @Override
-    public byte[] execute(InputStream is) {
-        mBytes.clear();
-        int count = 0;
-        int len = -1;
-        byte temp;
-        byte[] result;
-        int msgLen = -1;
-        byte[] lenField = new byte[lenSize];
-        try {
-            while ((len = is.read()) != -1) {
-                temp = (byte) len;
-                if (count >= lenStartIndex && count <= lenEndIndex) {
-                    lenField[count - lenStartIndex] = temp;
-                    if (count == lenEndIndex) {
-                        msgLen = getLen(lenField, byteOrder);
-                    }
-                }
-                count++;
-                mBytes.add(temp);
-                if (msgLen != -1) {
-                    if (count == msgLen + offset) {
-                        break;
-                    } else if (count > msgLen + offset) {
-                        len = -1;
-                        break;
-                    }
-                }
-            }
-            if (len == -1) {
-                return null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        result = new byte[mBytes.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = mBytes.get(i);
-        }
-        return result;
+    private fun List<Byte>.toByteArray(): ByteArray {
+        return ByteArray(size) { index -> this[index] }
+    }
+
+    private companion object {
+        private const val TAG = "VariableLenStickPackageHelper"
+        private const val DEFAULT_MAX_PACKET_SIZE = 1024 * 1024
     }
 }

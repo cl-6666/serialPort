@@ -1,21 +1,17 @@
 # Consumer proguard rules for serial_lib
 
-# Keep all public APIs
--keep public class com.cl.serialportlibrary.** { *; }
-
-# Keep native methods
--keepclasseswithmembernames class * {
+# JNI 方法名由 Native 符号绑定，不能被重命名。
+-keep class com.cl.serialportlibrary.SerialPort {
     native <methods>;
 }
 
-# Keep enums
--keepclassmembers enum * {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
+# Native close() 按字段名读取该文件描述符。
+-keepclassmembers class com.cl.serialportlibrary.SerialPortManager {
+    java.io.FileDescriptor mFd;
 }
 
-# Keep Serializable classes
--keepclassmembers class * implements java.io.Serializable {
+# 保持公开可序列化设备模型的字段名兼容。
+-keepclassmembers class com.cl.serialportlibrary.Device implements java.io.Serializable {
     static final long serialVersionUID;
     private static final java.io.ObjectStreamField[] serialPersistentFields;
     private void writeObject(java.io.ObjectOutputStream);

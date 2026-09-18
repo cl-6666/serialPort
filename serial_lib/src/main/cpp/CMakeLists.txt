@@ -5,8 +5,8 @@ project(SerialPort C)
 add_library(SerialPort SHARED
             SerialPort.c)
 
-# 添加 16KB 页面对齐支持 (arm64-v8a)
-if(ANDROID_ABI STREQUAL "arm64-v8a")
+# 为所有 64 位 ABI 添加 16KB 页面对齐支持。
+if(ANDROID_ABI STREQUAL "arm64-v8a" OR ANDROID_ABI STREQUAL "x86_64")
     target_compile_options(SerialPort PRIVATE -fno-emulated-tls)
     target_link_options(SerialPort PRIVATE 
         "LINKER:-z,max-page-size=16384"

@@ -1,537 +1,379 @@
 # Android Serial Communication Framework SerialPort
 
-[English](README_EN.md) | [中文](README.md)
+[中文](README.md) | [English](README_EN.md)
 
 [![Version](https://img.shields.io/badge/version-5.0.8-blue.svg)](https://github.com/cl-6666/serialPort)
-[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
+[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg)](https://developer.android.com/tools/releases/platforms)
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-> A flexible, efficient, and lightweight Android serial communication framework that makes serial port operations simple. Supports single-port, multi-port, sticky-packet handling, custom configuration, and more.
+A lightweight serial-port SDK for Android devices. It supports single and multiple ports, packet framing, reconnect, response-timeout retries, structured errors, and replaceable logging.
 
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/multiple_images.png" width="650" height="360" alt="Demo"/>  
+<p align="center">
+  <img src="img/introduce1.png" width="100%" alt="Serial SDK feature console" />
+</p>
 
-## 📱 Demo APK
+## Features
 
-Want to try it quickly? Download the demo APK and install it on your Android device.
+- Written in Kotlin and callable from Java.
+- Single- and multi-port managers with independent configuration and send queues.
+- 5–8 data bits, odd/even/SPACE/MARK parity, and 1/2 stop bits.
+- Raw, delimiter, fixed-length, variable-length, idle-timeout, and custom framing.
+- Reconnect after an unexpected disconnect, with configurable interval and attempt limit.
+- Response-timeout retries with a custom response matcher.
+- Coroutine-based IO with ordered writes per connection.
+- Structured errors, replaceable logging, and an option to disable detailed logs.
+- `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64` ABIs.
+- Android 5.0 (API 21) and later; 64-bit native libraries are linked for 16 KB page sizes.
 
-<div align="center">
+## Installation
 
-### 📥 [Download Demo APK](https://www.pgyer.com/XNzY)
+Add JitPack to the root project repositories:
 
-[![Download APK](https://img.shields.io/badge/Download-APK%20v5.0.8-brightgreen.svg?style=for-the-badge&logo=android)](https://www.pgyer.com/XNzY)
-
-**Version**: v5.0.8 | **Size**: ~7 MB | **API**: 21+ | **ABIs**: arm64-v8a, armeabi-v7a, x86, x86_64
-
-</div>
-
-### Demo Features
-
-- ✅ Single serial port demo
-- ✅ Multi-serial management demo
-- ✅ Sticky-packet strategy switching
-- ✅ Serial params configuration (data bits, parity, stop bits)
-- ✅ Real-time send/receive test
-- ✅ Hex/ASCII display
-- ✅ Performance test & statistics
-
-> Note: the demo APK must run on an Android device with serial ports (industrial devices, development boards, etc.). If your device has no serial port, check the source code for usage.
-
-## ⭐ Features
-
-- 🚀 **Easy to use** - fluent APIs, configure with one line
-- 🔧 **Multi-serial support** - manage multiple ports with independent configs
-- 📦 **Smart sticky-packet handling** - multiple strategies, switch at runtime
-- ⚡ **High performance** - multithreaded, thread-safe design
-- 🛡️ **Stable & reliable** - solid error handling and resource management
-- 📝 **Detailed logs** - rich debug information for troubleshooting
-- 🎯 **Flexible config** - data bits, parity, stop bits, etc.
-- ✨ **Google Play ready** - supports 16 KB page alignment and passes Play requirements
-
-## 📖 Versions
-
-- **Current**: 5.0.8 (recommended) - new architecture, powerful features, supports Google Play 16 KB page alignment
-- **Legacy**: [4.1.1 docs](README4.1.1.md) - stable legacy version
-
-### 5.0.8 Changes 🔥 (2025-12-25)
-
-- ✅ **16 KB page alignment**: fully compatible with Google Play 16 KB page size requirements
-- ✅ **Android 15 support**: compatible with Android 15
-- ✅ **Native library optimization**: `arm64-v8a` native lib meets Google Play checks
-- ✅ **Backward compatible**: works on older Android devices without code changes
-
-> Important: since 2024, Google Play requires all `arm64-v8a` native libraries to support 16 KB page size. v5.0.8 fully meets this requirement.
-
-### 5.0.0 Major Update 🎉
-
-- ✅ **Architecture refactor**: removed `SerialUtils` dependency, clearer design
-- ✅ **Simplified API**: introduced `SimpleSerialPortManager`, easier usage
-- ✅ **Multi-serial management**: new `MultiSerialPortManager` for complex scenarios
-- ✅ **Enhanced logging**: built-in logging system for better debugging
-- ✅ **Independent config**: each port can use its own sticky-packet strategy
-- ✅ **Performance improvements**: reduced ~30% redundant code
-
-## 🚀 Quick Start
-
-### Dependency
-
-Add dependency in your module `build.gradle`:
-
-```gradle
-dependencies {
-   implementation 'com.github.cl-6666:serialPort:v5.0.8'
-}
-```
-
-Add JitPack in the root `build.gradle`:
-
-```gradle
-allprojects {
+```groovy
+dependencyResolutionManagement {
     repositories {
+        google()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
     }
 }
 ```
 
-### Permissions
+Add the dependency to the application module:
 
-Add required permissions in `AndroidManifest.xml`:
-
-```xml
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-```
-
-## 📚 Usage Guide
-
-### 1️⃣ Single Port - Basic Example
-
-#### Minimal usage
-
-```java
-public class MainActivity extends AppCompatActivity {
-    
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        // Open serial port and receive data with one line
-        SimpleSerialPortManager.getInstance()
-            .openSerialPort("/dev/ttyS4", 115200, data -> {
-                String receivedData = new String(data);
-                Log.i("Serial", "Received: " + receivedData);
-                // Handle received data
-            });
-    }
-    
-    // Send data
-    private void sendData() {
-        SimpleSerialPortManager.getInstance().sendData("Hello World");
-    }
-    
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Close serial port
-        SimpleSerialPortManager.getInstance().closeSerialPort();
-    }
+```groovy
+dependencies {
+    implementation 'com.github.cl-6666:serialPort:v5.0.8'
 }
 ```
 
-#### Full configuration example
+When copying the AAR directly, the consuming app must also provide the Kotlin standard library and Coroutines Core:
 
-```java
-public class App extends Application {
-    
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        
-        // Global config (optional)
-        new SimpleSerialPortManager.QuickConfig()
-            .setIntervalSleep(50)                    // Read interval: 50ms
-            .setEnableLog(true)                      // Enable logs
-            .setLogTag("SerialPortApp")              // Log tag
-            .setDatabits(8)                          // Data bits: 8
-            .setParity(0)                            // Parity: none
-            .setStopbits(1)                          // Stop bits: 1
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING)
-            .apply(this);
-    }
-}
+```groovy
+implementation files('libs/serial_lib-release.aar')
+implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.0.21'
+implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
 ```
 
-### 2️⃣ Data Bits / Parity / Stop Bits
+The SDK does not require an `Application`, `Context`, or manifest permission. The app process must have read/write access to the target `/dev/tty*` node. A normal app commonly needs a system signature, vendor authorization, SELinux configuration, or a rooted environment.
 
-```java
-public class SerialConfigExample {
-    
-    public void configureSerialParams() {
-        SimpleSerialPortManager manager = SimpleSerialPortManager.getInstance();
-        
-        // Option 1: use QuickConfig
-        new SimpleSerialPortManager.QuickConfig()
-            .setDatabits(8)        // Data bits: 5, 6, 7, 8
-            .setParity(0)          // Parity: 0=none, 1=odd, 2=even
-            .setStopbits(1)        // Stop bits: 1 or 2
-            .setFlags(0)           // Flags
-            .apply(getApplication());
-        
-        // Option 2: set dynamically
-        manager.setDatabits(8)     // Set data bits
-               .setParity(2)       // Set even parity
-               .setStopbits(1)     // Set stop bits to 1
-               .setFlags(0);       // Set flags
-        
-        // Open serial port
-        manager.openSerialPort("/dev/ttyS4", 115200, data -> {
-            Log.i("Serial", "Data: " + new String(data));
-        });
-    }
-    
-    // Common configurations
-    public void commonConfigurations() {
-        SimpleSerialPortManager manager = SimpleSerialPortManager.getInstance();
-        
-        // Standard 8N1 (8 data bits, no parity, 1 stop bit)
-        manager.setDatabits(8).setParity(0).setStopbits(1);
-        
-        // Modbus RTU 8E1 (8 data bits, even parity, 1 stop bit) 
-        manager.setDatabits(8).setParity(2).setStopbits(1);
-        
-        // Legacy devices 7E2 (7 data bits, even parity, 2 stop bits)
-        manager.setDatabits(7).setParity(2).setStopbits(2);
-    }
-}
-```
+## Quick Start: Single Port
 
-### 3️⃣ Sticky-Packet Handling
+Use `create()` for a manager owned by a screen or business component. Always call `init(config)` before opening a port:
 
-Sticky packets are common in serial communication. Since v5.0.0, multiple strategies are provided:
+```kotlin
+private val serialManager = SimpleSerialPortManager.create()
 
-```java
-public class StickyPacketExample {
-    
-    public void noProcessing() {
-        // Strategy 1: no processing - good for simple streams
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING)
-            .apply(this);
-    }
-    
-    public void delimiterBased() {
-        // Strategy 2: delimiter-based - good for text protocols
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.DELIMITER_BASED)
-            .apply(this);
-        
-        // Custom delimiter
-        SimpleSerialPortManager.getInstance()
-            .configureStickyPacket(SimpleSerialPortManager.StickyPacketStrategy.DELIMITER_BASED);
-    }
-    
-    public void fixedLength() {
-        // Strategy 3: fixed-length - good for fixed-length protocols
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.FIXED_LENGTH)
-            .apply(this);
-    }
-    
-    public void variableLength() {
-        // Strategy 4: variable-length - good for protocols with length fields
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.VARIABLE_LENGTH)
-            .apply(this);
-    }
-}
-```
+private fun openSerialPort() {
+    val config = SerialConfig.Builder()
+        .setDatabits(8)
+        .setParity(0)
+        .setStopbits(1)
+        .setEnableLogging(BuildConfig.DEBUG)
+        .build()
 
-### 4️⃣ Multi-Serial Management
-
-```java
-public class MultiSerialExample {
-    
-    public void basicMultiSerial() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // Port 1: GPS module, no sticky-packet processing
-        manager.openSerialPort("GPS", "/dev/ttyS1", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(8)
-                .setParity(0)
-                .setStopbits(1)
-                .setStickyPacketHelpers(new BaseStickPackageHelper()) // No processing
-                .build(),
-            // Status callback
-            (serialId, success, status) -> {
-                Log.i("GPS", "Status: " + (success ? "Success" : "Failed"));
-            },
-            // Data callback
-            (serialId, data) -> {
-                String gpsData = new String(data);
-                Log.i("GPS", "Data: " + gpsData);
-                handleGpsData(gpsData);
-            });
-        
-        // Port 2: sensor module, split by newline
-        manager.openSerialPort("SENSOR", "/dev/ttyS2", 115200,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(8)
-                .setParity(0) 
-                .setStopbits(1)
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\n")) // Newline delimiter
-                .build(),
-            null, // No status callback needed
-            (serialId, data) -> {
-                String sensorData = new String(data).trim();
-                Log.i("SENSOR", "Data: " + sensorData);
-                handleSensorData(sensorData);
-            });
-        
-        // Send to different ports
-        manager.sendData("GPS", "AT+GPS?\r\n");
-        manager.sendData("SENSOR", "READ_TEMP\n");
-    }
-    
-    // Dynamic management
-    public void dynamicManagement() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // Query status
-        List<String> openedPorts = manager.getOpenedSerialPorts();
-        boolean isOpened = manager.isSerialPortOpened("GPS");
-        manager.printAllSerialStatus();
-        
-        // Update sticky-packet strategy dynamically
-        manager.updateStickyPacketHelpers("GPS", 
-            new AbsStickPackageHelper[]{new SpecifiedStickPackageHelper("\r\n")});
-        
-        // Close one port
-        manager.closeSerialPort("GPS");
-        
-        // Close all ports
-        manager.closeAllSerialPorts();
-    }
-}
-```
-
-## 🎯 Real-world Scenarios
-
-### Industrial control
-```java
-public class IndustrialControlExample {
-    
-    public void setupIndustrialPorts() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // PLC - Modbus RTU
-        manager.openSerialPort("PLC", "/dev/ttyS1", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(8).setParity(2).setStopbits(1) // 8E1
-                .setStickyPacketHelpers(new StaticLenStickPackageHelper(8))
-                .build(),
-            null, this::handlePlcData);
-        
-        // Sensor acquisition - text protocol
-        manager.openSerialPort("SENSORS", "/dev/ttyS3", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(7).setParity(2).setStopbits(1) // 7E1
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\r\n"))
-                .build(),
-            null, this::handleSensorData);
-    }
-}
-```
-
-### Communication gateway
-```java
-public class GatewayExample {
-    
-    public void setupGateway() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // Uplink (to server)
-        manager.openSerialPort("UPLINK", "/dev/ttyS1", 115200,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\n"))
-                .build(),
-            null, this::handleUplinkData);
-        
-        // Downlink device 1 - GPS
-        manager.openSerialPort("GPS", "/dev/ttyS2", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\r\n"))
-                .build(),
-            null, data -> forwardToUplink("GPS", data));
-    }
-    
-    private void forwardToUplink(String deviceId, byte[] data) {
-        String message = String.format("[%s]%s\n", deviceId, new String(data));
-        SimpleSerialPortManager.multi().sendData("UPLINK", message);
-    }
-}
-```
-
-## 🔧 Advanced
-
-### Logging
-```java
-// Enable verbose logs
-SerialPortLogUtil.setDebugEnabled(true);
-
-// Custom output
-SerialPortLogUtil.i("MyTag", "Custom log message");
-SerialPortLogUtil.printData("Send", data); // Hex + ASCII
-SerialPortLogUtil.printSerialConfig("MySerial", 8, 0, 1, 0); // Config info
-```
-
-### Error handling
-```java
-manager.openSerialPort("TEST", "/dev/ttyS1", 9600,
-    (serialId, success, status) -> {
-        if (!success) {
-            switch (status) {
-                case NO_READ_WRITE_PERMISSION:
-                    Log.e("Serial", "No permission");
-                    break;
-                case OPEN_FAIL:
-                    Log.e("Serial", "Open failed");
-                    break;
-            }
+    serialManager
+        .init(config)
+        .setOnSerialErrorListener { error ->
+            Log.e("Serial", "${error.code}: ${error.message}", error.cause)
         }
-    },
-    dataCallback);
+
+    val opened = serialManager.openSerialPort(
+        devicePath = "/dev/ttyS4",
+        baudRate = 115200,
+        openCallback = { success, status ->
+            Log.i("Serial", "opened=$success, status=$status")
+        },
+        dataCallback = object : SimpleSerialPortManager.OnDataReceivedCallback {
+            override fun onDataReceived(data: ByteArray) {
+                Log.d("Serial", "RX=${data.toHexString()}")
+            }
+
+            override fun onDataSent(data: ByteArray) {
+                Log.d("Serial", "TX=${data.toHexString()}")
+            }
+        },
+    )
+
+    if (!opened) Log.e("Serial", "Open request failed")
+}
+
+private fun sendCommand() {
+    val accepted = serialManager.sendData(byteArrayOf(0x01, 0x03, 0x00, 0x00))
+    if (!accepted) Log.e("Serial", "Connection unavailable or send queue full")
+}
+
+override fun onDestroy() {
+    serialManager.close()
+    super.onDestroy()
+}
+
+private fun ByteArray.toHexString(): String =
+    joinToString(" ") { byte -> "%02X".format(byte.toInt() and 0xFF) }
 ```
 
-## 🛠️ Troubleshooting
+`openSerialPort()` is synchronous. Permission probing can be slow, so production apps should call it from a worker thread or `Dispatchers.IO`. Status, data, reliable-send, and error callbacks from the facade managers are dispatched to the main thread.
 
-### Common issues
+## Multiple Ports
 
-1. **Failed to open serial port**
-   ```java
-   // Check device paths
-   String[] devices = new SerialPortFinder().getAllDevicesPath();
-   
-   // Check permission
-   File deviceFile = new File("/dev/ttyS4");
-   boolean canRead = deviceFile.canRead();
-   boolean canWrite = deviceFile.canWrite();
-   ```
+Use `createMulti()` to create an independently owned multi-port manager. Give each connection a unique ID and its own `SerialConfig`:
 
-2. **Incomplete received data**
-   ```java
-   // Enable logs to inspect raw data
-   SerialPortLogUtil.setDebugEnabled(true);
-   
-   // Try different sticky-packet strategies
-   manager.configureStickyPacket(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING);
-   ```
+```kotlin
+private val serialPorts = SimpleSerialPortManager.createMulti()
 
-## 📖 API Reference
+private fun openPort(serialId: String, path: String, baudRate: Int) {
+    val config = SerialConfig.Builder()
+        .setDatabits(8)
+        .setParity(0)
+        .setStopbits(1)
+        .setStickyPacketHelpers(SpecifiedStickPackageHelper("\r\n"))
+        .build()
 
-### SimpleSerialPortManager (single port)
-| Method | Description |
-|------|------|
-| `getInstance()` | Get singleton instance |
-| `openSerialPort(path, baudRate, callback)` | Open serial port |
-| `sendData(data)` | Send data |
-| `closeSerialPort()` | Close serial port |
-| `setDatabits(databits)` | Set data bits |
-| `setParity(parity)` | Set parity |
-| `setStopbits(stopbits)` | Set stop bits |
+    val opened = serialPorts.openSerialPort(
+        serialId,
+        path,
+        baudRate,
+        config,
+        { id, success, status ->
+            Log.i("Serial", "[$id] opened=$success, status=$status")
+        },
+        object : MultiSerialPortManager.OnSerialPortDataCallback {
+            override fun onDataReceived(serialId: String, data: ByteArray) {
+                Log.d("Serial", "RX [$serialId] ${data.size} bytes")
+            }
 
-### MultiSerialPortManager (multi port)
-| Method | Description |
-|------|------|
-| `getInstance()` | Get instance |
-| `openSerialPort(id, path, baudRate, config, statusCallback, dataCallback)` | Open serial port |
-| `sendData(serialId, data)` | Send data to a port |
-| `closeSerialPort(serialId)` | Close a port |
-| `closeAllSerialPorts()` | Close all ports |
-| `isSerialPortOpened(serialId)` | Check port status |
+            override fun onDataSent(serialId: String, data: ByteArray) {
+                Log.d("Serial", "TX [$serialId] ${data.size} bytes")
+            }
+        },
+    )
 
-## 🎯 Migration
+    if (!opened) Log.e("Serial", "[$serialId] open failed")
+}
 
-### From 4.1.1 to 5.0.0
+private fun usePorts() {
+    openPort("GPS", "/dev/ttyS1", 9600)
+    openPort("SENSOR", "/dev/ttyS2", 115200)
 
-**Old (4.1.1)**:
-```java
-// Init in Application
-SerialUtils.getInstance().init(this, true, "TAG", 50, 8, 0, 1);
+    serialPorts.sendData("GPS", "AT+GPS?\r\n")
+    serialPorts.sendData("SENSOR", byteArrayOf(0x01, 0x03))
 
-// Usage
-SerialUtils.getInstance().setmSerialPortDirectorListens(...);
-SerialUtils.getInstance().manyOpenSerialPort(list);
+    val openedIds = serialPorts.openedSerialPorts
+    val gpsOpened = serialPorts.isSerialPortOpened("GPS")
+
+    serialPorts.closeSerialPort("GPS")
+    serialPorts.closeAllSerialPorts()
+}
 ```
 
-**New (5.0.0)**:
-```java
-// Simplified init (optional)
-new SimpleSerialPortManager.QuickConfig()
-    .setDatabits(8).setParity(0).setStopbits(1)
-    .apply(this);
+Opening an existing ID closes that ID's previous connection first. Keep both IDs and device paths unique in the application layer to avoid accidental replacement or opening one device twice.
 
-// Direct usage
-SimpleSerialPortManager.getInstance()
-    .openSerialPort("/dev/ttyS4", 115200, data -> {
-        // Handle data
-    });
+## Serial Configuration
+
+Use the same `SerialConfig` for single- and multi-port connections:
+
+```kotlin
+val config = SerialConfig.Builder()
+    .setDatabits(8)                 // 5, 6, 7, 8
+    .setParity(0)                   // 0 none, 1 odd, 2 even, 3 SPACE, 4 MARK
+    .setStopbits(1)                 // 1, 2
+    .setFlags(0)
+    .setIntervalSleep(50)           // Raw-mode polling delay when no data is available
+    .setMaxPacketSize(1_024)        // Maximum bytes in one packet
+    .setPacketTimeout(1_000)        // Discard an incomplete packet after 1 second of idle time
+    .setAutoReconnect(true)
+    .setReconnectInterval(3_000)
+    .setMaxReconnectAttempts(5)
+    .build()
 ```
 
-## 📞 Contact
+`SerialConfig` validates data bits, stop bits, parity, and timeout values when built. Invalid values throw `IllegalArgumentException`.
 
-- **QQ group**: 458173716
-- **Blog**: https://blog.csdn.net/a214024475/article/details/113735085
-- **GitHub**: https://github.com/cl-6666/serialPort
+`packetTimeout` starts after the first byte and measures inter-byte idle time, so an idle serial port does not trigger it. Timeout and oversized-packet errors are reported through `OnSerialErrorListener` as `PACKET_TIMEOUT` and `PACKET_TOO_LARGE`; the receive loop then continues.
 
-### PC serial debugging assistant
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/pc_ck.jpg" width="440" height="320" alt="PC tool"/>
+## Packet Framing
 
-**Download**: https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh  
+| Helper | Use case | Example |
+|---|---|---|
+| `BaseStickPackageHelper` | Raw byte stream | `BaseStickPackageHelper(50)` |
+| `SpecifiedStickPackageHelper` | Newline, AT, or head/tail markers | `SpecifiedStickPackageHelper("\r\n")` |
+| `StaticLenStickPackageHelper` | Fixed-length protocol | `StaticLenStickPackageHelper(8)` |
+| `VariableLenStickPackageHelper` | Length field embedded in the packet | `VariableLenStickPackageHelper(ByteOrder.BIG_ENDIAN, 2, 2, 12)` |
+| `TimeoutStickPackageHelper` | An idle period terminates a packet | `TimeoutStickPackageHelper(50)` |
+| `CompositeStickPackageHelper` | Primary and fallback strategies | `CompositeStickPackageHelper(primary, fallback)` |
 
-### QQ technical group
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/qq2.jpg" width="350" height="560" alt="QQ group"/>
-
-**Group ID**: 458173716
-
-## 🔬 Technical Notes
-
-### 16 KB Page Alignment (v5.0.8)
-
-Since 2024, Google Play requires apps that ship native libraries (`.so`) to support 16 KB page size, to be compatible with newer Android devices. This library fully meets the requirement.
-
-#### Implementation
-
-In CMake configuration, the following linker flags are added for `arm64-v8a`:
-
-```cmake
-# CMakeLists.txt
-if(ANDROID_ABI STREQUAL "arm64-v8a")
-    target_compile_options(SerialPort PRIVATE -fno-emulated-tls)
-    target_link_options(SerialPort PRIVATE 
-        "LINKER:-z,max-page-size=16384"
-        "LINKER:-z,common-page-size=16384")
-endif()
+```kotlin
+val config = SerialConfig.Builder()
+    .setEnableStickyPacketProcessing(true)
+    .setStickyPacketHelpers(SpecifiedStickPackageHelper("\n"))
+    .build()
 ```
 
-#### Compatibility
+Implement `AbsStickPackageHelper` for a custom protocol:
 
-- ✅ **Fully compatible**: supports Android 5.0+ (API 21+)
-- ✅ **No code change**: upgrade and use directly
-- ✅ **Optimized**: 16 KB alignment can improve memory management on some devices
-- ✅ **Google Play ready**: passes 16 KB alignment checks
+```kotlin
+val customHelper = AbsStickPackageHelper { inputStream ->
+    // Block until one complete frame is available, then return a ByteArray.
+    null
+}
+```
 
-#### Verification
+## Automatic Reconnect
 
-You can verify alignment with Android Studio APK Analyzer:
+```kotlin
+val config = SerialConfig.Builder()
+    .setAutoReconnect(true)
+    .setReconnectInterval(3_000)
+    .setMaxReconnectAttempts(5)
+    .build()
+```
 
-1. Build an APK or AAB
-2. In Android Studio: `Build` → `Analyze APK...`
-3. Check the `Alignment` column for `lib/arm64-v8a/libSerialPort.so`
-4. `16 KB` means it is configured correctly
+- Only an IO failure or a missing device node triggers reconnect.
+- Calling `closeSerialPort()` or `close()` does not reconnect.
+- A successful reconnect reports `SUCCESS_OPENED` again.
+- Exhausting all attempts reports `OPEN_FAIL` and `RECONNECT_EXHAUSTED`.
 
-#### Resources
+## Response Timeout and Retry
 
-- [Google Play 16 KB page size requirements](https://developer.android.com/guide/practices/page-sizes)
-- [CMake `target_link_options` docs](https://cmake.org/cmake/help/latest/command/target_link_options.html)
+```kotlin
+val config = SerialConfig.Builder()
+    .setEnableReliableSend(true)
+    .setResponseTimeoutMillis(1_000)
+    .setMaxSendRetries(2)
+    .setSendRetryIntervalMillis(200)
+    .setResponseMatcher { request, response ->
+        request.isNotEmpty() && response.isNotEmpty() && request[0] == response[0]
+    }
+    .build()
+```
+
+```kotlin
+serialManager.setOnReliableSendListener(object : OnReliableSendListener {
+    override fun onRetry(data: ByteArray, retryCount: Int, maxRetries: Int) {
+        Log.w("Serial", "retry=$retryCount/$maxRetries")
+    }
+
+    override fun onSuccess(data: ByteArray, response: ByteArray) {
+        Log.i("Serial", "Matched response received")
+    }
+
+    override fun onFailure(data: ByteArray, reason: ReliableSendFailure) {
+        Log.e("Serial", "Reliable send failed: $reason")
+    }
+})
+```
+
+For multiple ports, call `setOnReliableSendListener(serialId, listener)` after the corresponding connection opens successfully.
+
+Without a `responseMatcher`, any non-empty packet is treated as the current request's response. Protocols with unsolicited or concurrent messages must match an address, command, or sequence number.
+
+A `true` result from `sendData()` only means the data entered the send queue. `onDataSent` means one physical write completed. Reliable-send `onSuccess` means a matching response was received.
+
+## Errors and Logging
+
+The structured `SerialError` contains `code`, `message`, `cause`, `devicePath`, and the multi-port `serialId`:
+
+```kotlin
+serialPorts.setOnSerialErrorListener { error ->
+    Log.e(
+        "Serial",
+        "id=${error.serialId}, device=${error.devicePath}, code=${error.code}, ${error.message}",
+        error.cause,
+    )
+}
+```
+
+Disable detailed logs in production or bridge the SDK to the application's logger:
+
+```kotlin
+SerialPortLogUtil.setDebugEnabled(false)
+
+SerialPortLogUtil.setLogger { level, tag, message, throwable ->
+    // Forward to the app logger. Avoid recording sensitive business data.
+}
+```
+
+## Lifecycle and Threads
+
+- Screen- or component-scoped connection: use `create()` / `createMulti()` and call `close()` from `onDestroy()`, `onCleared()`, or the owner's release method.
+- Long-lived cross-screen connection: let a Repository, Service, or foreground Service own and release the manager.
+- Initialization in `Application` is not required. Legacy `init(application)` and `QuickConfig.apply(application)` overloads remain only for compatibility and are deprecated.
+- `getInstance()` / `multi()` return global singletons. Use them only for deliberately global connections, and prevent screens from closing each other's instance.
+- `sendData()` queues without blocking; each connection has a queue capacity of 64.
+- Business callbacks from `SimpleSerialPortManager` and `MultiSerialPortManager` are dispatched to the main thread.
+
+## Device Discovery and Permission Troubleshooting
+
+```kotlin
+val paths: Array<String> = SerialPortFinder().allDevicesPath
+paths.forEach { path -> Log.d("Serial", path) }
+```
+
+When opening fails, check the following in order:
+
+1. The `/dev/tty*` node exists.
+2. The app process has read/write access.
+3. SELinux allows access.
+4. The baud rate is supported by the SDK.
+5. No other process or connection owns the device.
+
+When permission is missing, the SDK attempts `chmod 666` through `su`. This can take time. Production devices should preferably grant stable access through system permissions, vendor configuration, or SELinux policy.
+
+## Java Usage
+
+The public builders, callbacks, and managers are Java-compatible. Java callers must also invoke `init(config)` first and do not need to pass an `Application`. See:
+
+[JavaApiCompatibilityTest.java](serial_lib/src/test/java/com/cl/serialportlibrary/JavaApiCompatibilityTest.java)
+
+## Build and Verification
+
+```bash
+./gradlew :serial_lib:testDebugUnitTest
+./gradlew :serial_lib:lintDebug
+./gradlew :serial_lib:assembleRelease
+```
+
+Release AAR output:
+
+```text
+serial_lib/build/outputs/aar/serial_lib-release.aar
+```
+
+Use Android Studio APK Analyzer to inspect 16 KB page alignment for `lib/arm64-v8a/libSerialPort.so` and `lib/x86_64/libSerialPort.so`.
+
+## Demo Application
+
+The repository's `app` module demonstrates:
+
+- A landscape phone/tablet layout.
+- Device discovery, adding one connection, and managing multiple ports.
+- Data bits, parity, stop bits, and packet-framing strategies.
+- Automatic reconnect and response-timeout retry switches.
+- Per-port send, send-to-all, UTF-8/HEX input, and conversion preview.
+- Connection, receive, send, and error logs.
+
+```bash
+./gradlew :app:assembleDebug
+```
+
+## Contact
+
+- QQ group: 458173716
+- [Blog](https://blog.csdn.net/a214024475/article/details/113735085)
+- [GitHub](https://github.com/cl-6666/serialPort)
+
+### PC Serial Debugging Tool
+
+<img src="img/pc_ck.jpg" width="440" height="320" alt="PC serial debugging tool" />
+
+[Download](https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh)
+
+### QQ Technical Group
+
+<img src="img/qq2.jpg" width="350" height="560" alt="QQ technical group" />
+
+Group ID: 458173716
 
 ---
+
+Apache License 2.0

@@ -1,132 +1,109 @@
-package com.cl.serialportlibrary.stick;
+package com.cl.serialportlibrary.stick
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.IOException
+import java.io.InputStream
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
 /**
- * The sticky packet processing of specific characters,
- * one Byte[] at the beginning and the end, cannot be empty at the same time,
- * if one of them is empty, then the non-empty is used as the split marker
- * Example: The protocol is formulated as ^+data+$, starting with ^ and ending with $
+ * 根据开始、结束标识解析完整数据包。
  */
-public class SpecifiedStickPackageHelper implements AbsStickPackageHelper {
-    private final byte[] head;
-    private final byte[] tail;
-    private final List<Byte> bytes;
-    private final int headLen;
-    private final int tailLen;
+open class SpecifiedStickPackageHelper(
+    head: ByteArray?,
+    tail: ByteArray?,
+) : AbsStickPackageHelper {
 
-    public SpecifiedStickPackageHelper(byte[] head, byte[] tail) {
-        this.head = head;
-        this.tail = tail;
-        if (head == null || tail == null) {
-            throw new IllegalStateException(" head or tail ==null");
+    private val head: ByteArray = head ?: throw IllegalStateException(" head or tail ==null")
+    private val tail: ByteArray = tail ?: throw IllegalStateException(" head or tail ==null")
+    private val headLen = this.head.size
+    private val tailLen = this.tail.size
+
+    init {
+        if (headLen == 0 && tailLen == 0) {
+            throw IllegalStateException(" head and tail length==0")
         }
-        if (head.length == 0 && tail.length == 0) {
-            throw new IllegalStateException(" head and tail length==0");
-        }
-        headLen = head.length;
-        tailLen = tail.length;
-        bytes = new ArrayList<>();
-    }
-    
-    /**
-     * 构造函数 - 只使用结束标识
-     * @param tail 结束标识
-     */
-    public SpecifiedStickPackageHelper(byte[] tail) {
-        this(new byte[0], tail);
-    }
-    
-    /**
-     * 构造函数 - 字符串版本
-     * @param head 开始标识字符串
-     * @param tail 结束标识字符串
-     */
-    public SpecifiedStickPackageHelper(String head, String tail) {
-        this(head != null ? head.getBytes() : new byte[0], 
-             tail != null ? tail.getBytes() : new byte[0]);
-    }
-    
-    /**
-     * 构造函数 - 只使用结束标识字符串
-     * @param tail 结束标识字符串
-     */
-    public SpecifiedStickPackageHelper(String tail) {
-        this(new byte[0], tail != null ? tail.getBytes() : new byte[0]);
     }
 
-    private boolean endWith(Byte[] src, byte[] target) {
-        if (src.length < target.length) {
-            return false;
-        }
-        for (int i = 0; i < target.length; i++) {
-            if (target[target.length - i - 1] != src[src.length - i - 1]) {
-                return false;
-            }
-        }
-        return true;
-    }
+    constructor(tail: ByteArray?) : this(ByteArray(0), tail)
 
-    private byte[] getRangeBytes(List<Byte> list, int start, int end) {
-        Byte[] temps = Arrays.copyOfRange(list.toArray(new Byte[0]), start, end);
-        byte[] result = new byte[temps.length];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = temps[i];
-        }
-        return result;
-    }
+    constructor(head: String?, tail: String?) : this(
+        head?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0),
+        tail?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0),
+    )
 
-    @Override
-    public byte[] execute(InputStream is) {
-        bytes.clear();
-        int len = -1;
-        byte temp;
-        int startIndex = -1;
-        byte[] result = null;
-        boolean isFindStart = false, isFindEnd = false;
+    constructor(tail: String?) : this(
+        ByteArray(0),
+        tail?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0),
+    )
+
+    override fun execute(inputStream: InputStream): ByteArray? {
         try {
-            while ((len = is.read()) != -1) {
-                temp = (byte) len;
-                bytes.add(temp);
-                Byte[] byteArray = bytes.toArray(new Byte[]{});
-                if (headLen == 0 || tailLen == 0) {//Only head or tail markers
-                    if (endWith(byteArray, head) || endWith(byteArray, tail)) {
-                        if (startIndex == -1) {
-                            startIndex = bytes.size() - headLen;
-                        } else {
-                            result = getRangeBytes(bytes, startIndex, bytes.size());
-                            break;
-                        }
-                    }
-                } else {
-                    if (!isFindStart) {
-                        if (endWith(byteArray, head)) {
-                            startIndex = bytes.size() - headLen;
-                            isFindStart = true;
-                        }
-                    } else if (!isFindEnd) {
-                        if (endWith(byteArray, tail)) {
-                            if (startIndex + headLen <= bytes.size() - tailLen) {
-                                isFindEnd = true;
-                                result = getRangeBytes(bytes, startIndex, bytes.size());
-                                break;
-                            }
-                        }
-                    }
+            if (headLen == 0 || tailLen == 0) {
+                return readUntilDelimiter(inputStream, if (tailLen > 0) tail else head)
+            }
 
+            val searchWindow = ArrayDeque<Byte>(headLen)
+            val tailWindow = ArrayDeque<Byte>(tailLen)
+            val packet = ByteArrayOutputStream()
+            var started = false
+            while (true) {
+                val value = inputStream.read()
+                if (value == -1) return null
+
+                if (!started) {
+                    searchWindow.addLast(value.toByte())
+                    if (searchWindow.size > headLen) searchWindow.removeFirst()
+                    if (searchWindow.size == headLen && searchWindow.matches(head)) {
+                        started = true
+                        packet.write(head)
+                    }
+                    continue
+                }
+
+                packet.write(value)
+                ensurePacketSize(packet.size())
+                tailWindow.addLast(value.toByte())
+                if (tailWindow.size > tailLen) tailWindow.removeFirst()
+                if (tailWindow.size == tailLen && tailWindow.matches(tail)) {
+                    return packet.toByteArray()
                 }
             }
-            if (len == -1) {
-                return null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        } catch (error: IOException) {
+            SerialPortLogUtil.e(TAG, "按标识拆包读取失败", error)
+            throw error
         }
-        return result;
+    }
+
+    private fun readUntilDelimiter(inputStream: InputStream, delimiter: ByteArray): ByteArray? {
+        val packet = ByteArrayOutputStream()
+        val delimiterWindow = ArrayDeque<Byte>(delimiter.size)
+        while (true) {
+            val value = inputStream.read()
+            if (value == -1) return null
+            packet.write(value)
+            ensurePacketSize(packet.size())
+            delimiterWindow.addLast(value.toByte())
+            if (delimiterWindow.size > delimiter.size) delimiterWindow.removeFirst()
+            if (delimiterWindow.size == delimiter.size && delimiterWindow.matches(delimiter)) {
+                return packet.toByteArray()
+            }
+        }
+    }
+
+    private fun ensurePacketSize(size: Int) {
+        if (size > DEFAULT_MAX_PACKET_SIZE) {
+            throw IllegalStateException("数据包超过最大长度 $DEFAULT_MAX_PACKET_SIZE")
+        }
+    }
+
+    private fun ArrayDeque<Byte>.matches(target: ByteArray): Boolean {
+        if (size != target.size) return false
+        return withIndex().all { (index, value) -> value == target[index] }
+    }
+
+    private companion object {
+        private const val TAG = "SpecifiedStickPackageHelper"
+        private const val DEFAULT_MAX_PACKET_SIZE = 1024 * 1024
     }
 }

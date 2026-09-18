@@ -22,6 +22,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
+#include <stdio.h>
 #include <jni.h>
 
 #include "SerialPort.h"
@@ -31,6 +33,25 @@ static const char *TAG="serial_port";
 #define LOGI(fmt, args...) __android_log_print(ANDROID_LOG_INFO,  TAG, fmt, ##args)
 #define LOGD(fmt, args...) __android_log_print(ANDROID_LOG_DEBUG, TAG, fmt, ##args)
 #define LOGE(fmt, args...) __android_log_print(ANDROID_LOG_ERROR, TAG, fmt, ##args)
+
+static void throwIllegalArgumentException(JNIEnv *env, const char *message)
+{
+    jclass exceptionClass = (*env)->FindClass(env, "java/lang/IllegalArgumentException");
+    if (exceptionClass != NULL) {
+        (*env)->ThrowNew(env, exceptionClass, message);
+    }
+}
+
+static void throwIOException(JNIEnv *env, const char *operation, int errorNumber)
+{
+    char message[256];
+    snprintf(message, sizeof(message), "%s failed: %s (errno=%d)",
+             operation, strerror(errorNumber), errorNumber);
+    jclass exceptionClass = (*env)->FindClass(env, "java/io/IOException");
+    if (exceptionClass != NULL) {
+        (*env)->ThrowNew(env, exceptionClass, message);
+    }
+}
 
 static speed_t getBaudrate(jint baudrate)
 {
@@ -79,28 +100,61 @@ JNIEXPORT jobject JNICALL Java_com_cl_serialportlibrary_SerialPort_open
         (JNIEnv *env, jclass thiz, jstring path, jint baudrate, jint flags, jint databits, jint stopbits, jint parity)
 {
     int fd;
+    int openFlags;
     speed_t speed;
     jobject mFileDescriptor;
 
     /* Check arguments */
     {
+        if (path == NULL) {
+            throwIllegalArgumentException(env, "path must not be null");
+            return NULL;
+        }
         speed = getBaudrate(baudrate);
         if (speed == -1) {
             LOGE("Invalid baudrate");
+            throwIllegalArgumentException(env, "Unsupported baudrate");
             return NULL;
         }
+        if (databits < 5 || databits > 8 || (stopbits != 1 && stopbits != 2) || parity < 0 || parity > 4) {
+            LOGE("Invalid serial port parameters");
+            throwIllegalArgumentException(env, "Invalid databits, stopbits or parity");
+            return NULL;
+        }
+
+        int allowedFlags = O_NOCTTY | O_NONBLOCK | O_SYNC;
+#ifdef O_DSYNC
+        allowedFlags |= O_DSYNC;
+#endif
+#ifdef O_CLOEXEC
+        allowedFlags |= O_CLOEXEC;
+#endif
+        if ((flags & ~allowedFlags) != 0) {
+            LOGE("Unsupported open flags: 0x%x", flags);
+            throwIllegalArgumentException(env, "Unsupported serial port open flags");
+            return NULL;
+        }
+        openFlags = O_RDWR | O_NOCTTY | flags;
+#ifdef O_CLOEXEC
+        openFlags |= O_CLOEXEC;
+#endif
     }
 
     /* Opening device */
     {
         jboolean iscopy;
         const char *path_utf = (*env)->GetStringUTFChars(env, path, &iscopy);
-        LOGD("Opening serial port %s with flags 0x%x", path_utf, O_RDWR | flags);
-        fd = open(path_utf, O_RDWR | flags);
+        if (path_utf == NULL) {
+            return NULL;
+        }
+        LOGD("Opening serial port %s with flags 0x%x", path_utf, openFlags);
+        fd = open(path_utf, openFlags);
+        int openError = errno;
         LOGD("open() fd = %d", fd);
         (*env)->ReleaseStringUTFChars(env, path, path_utf);
         if (fd == -1) {
             LOGE("Cannot open port");
+            throwIOException(env, "open", openError);
             return NULL;
         }
     }
@@ -110,13 +164,16 @@ JNIEXPORT jobject JNICALL Java_com_cl_serialportlibrary_SerialPort_open
         struct termios cfg;
         LOGD("Configuring serial port");
         if (tcgetattr(fd, &cfg)) {
+            int configError = errno;
             LOGE("tcgetattr() failed");
             close(fd);
+            throwIOException(env, "tcgetattr", configError);
             return NULL;
         }
 
         // Initialize termios struct
         cfmakeraw(&cfg);
+        cfg.c_cflag |= CLOCAL | CREAD;
 
         // Set data bits
         cfg.c_cflag &= ~CSIZE;
@@ -196,8 +253,10 @@ JNIEXPORT jobject JNICALL Java_com_cl_serialportlibrary_SerialPort_open
         cfsetospeed(&cfg, speed);
 
         if (tcsetattr(fd, TCSANOW, &cfg)) {
+            int configError = errno;
             LOGE("tcsetattr() failed");
             close(fd);
+            throwIOException(env, "tcsetattr", configError);
             return NULL;
         }
     }
@@ -205,10 +264,26 @@ JNIEXPORT jobject JNICALL Java_com_cl_serialportlibrary_SerialPort_open
     /* Create a corresponding file descriptor */
     {
         jclass cFileDescriptor = (*env)->FindClass(env, "java/io/FileDescriptor");
+        if (cFileDescriptor == NULL) {
+            close(fd);
+            return NULL;
+        }
         jmethodID iFileDescriptor = (*env)->GetMethodID(env, cFileDescriptor, "<init>", "()V");
         jfieldID descriptorID = (*env)->GetFieldID(env, cFileDescriptor, "descriptor", "I");
+        if (iFileDescriptor == NULL || descriptorID == NULL) {
+            close(fd);
+            return NULL;
+        }
         mFileDescriptor = (*env)->NewObject(env, cFileDescriptor, iFileDescriptor);
+        if (mFileDescriptor == NULL) {
+            close(fd);
+            return NULL;
+        }
         (*env)->SetIntField(env, mFileDescriptor, descriptorID, (jint)fd);
+        if ((*env)->ExceptionCheck(env)) {
+            close(fd);
+            return NULL;
+        }
     }
 
     return mFileDescriptor;
@@ -220,12 +295,26 @@ JNIEXPORT void JNICALL Java_com_cl_serialportlibrary_SerialPort_close
     jclass SerialPortClass = (*env)->GetObjectClass(env, thiz);
     jclass FileDescriptorClass = (*env)->FindClass(env, "java/io/FileDescriptor");
 
+    if (SerialPortClass == NULL || FileDescriptorClass == NULL) {
+        return;
+    }
+
     jfieldID mFdID = (*env)->GetFieldID(env, SerialPortClass, "mFd", "Ljava/io/FileDescriptor;");
     jfieldID descriptorID = (*env)->GetFieldID(env, FileDescriptorClass, "descriptor", "I");
 
+    if (mFdID == NULL || descriptorID == NULL) {
+        return;
+    }
+
     jobject mFd = (*env)->GetObjectField(env, thiz, mFdID);
+    if (mFd == NULL) {
+        return;
+    }
     jint descriptor = (*env)->GetIntField(env, mFd, descriptorID);
 
-    LOGD("close(fd = %d)", descriptor);
-    close(descriptor);
+    if (descriptor >= 0) {
+        LOGD("close(fd = %d)", descriptor);
+        close(descriptor);
+        (*env)->SetIntField(env, mFd, descriptorID, (jint)-1);
+    }
 }

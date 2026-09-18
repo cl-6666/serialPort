@@ -1,466 +1,454 @@
-package com.cl.serialportlibrary;
+package com.cl.serialportlibrary
 
-import android.app.Application;
-import android.os.Handler;
-import android.os.Looper;
+import android.os.Handler
+import android.os.Looper
+import com.cl.serialportlibrary.enumerate.ReliableSendFailure
+import com.cl.serialportlibrary.enumerate.SerialPortEnum
+import com.cl.serialportlibrary.enumerate.SerialStatus
+import com.cl.serialportlibrary.listener.OnReliableSendListener
+import com.cl.serialportlibrary.listener.OnSerialErrorListener
+import com.cl.serialportlibrary.listener.OnSerialPortDataListener
+import com.cl.serialportlibrary.listener.SerialResponseMatcher
+import com.cl.serialportlibrary.stick.AbsStickPackageHelper
+import com.cl.serialportlibrary.stick.BaseStickPackageHelper
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.Closeable
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 
-import com.cl.serialportlibrary.enumerate.SerialPortEnum;
-import com.cl.serialportlibrary.enumerate.SerialStatus;
-import com.cl.serialportlibrary.listener.OnOpenSerialPortListener;
-import com.cl.serialportlibrary.listener.OnSerialPortDataListener;
-import com.cl.serialportlibrary.stick.AbsStickPackageHelper;
-import com.cl.serialportlibrary.stick.BaseStickPackageHelper;
-import com.cl.serialportlibrary.utils.SerialPortLogUtil;
+/** 线程安全的多串口管理入口，每个串口 ID 拥有独立连接和配置。 */
+class MultiSerialPortManager private constructor() : Closeable {
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val managers = ConcurrentHashMap<String, SerialPortManager>()
+    private val configs = ConcurrentHashMap<String, SerialConfig>()
+    private val portEnums = ConcurrentHashMap<String, SerialPortEnum>()
+    private val connectionTokens = ConcurrentHashMap<String, Any>()
 
-/**
- * 多串口管理器
- * 支持同时管理多个串口，每个串口可以有独立的配置
- * Author: cl
- * Date: 2023/10/26
- */
-public class MultiSerialPortManager {
-    
-    private static final String TAG = "MultiSerialPortManager";
-    private static MultiSerialPortManager instance;
-    private Handler handler = new Handler(Looper.getMainLooper());
-    
-    // 串口管理器映射 <串口ID, SerialPortManager>
-    private final Map<String, SerialPortManager> serialPortManagers = new ConcurrentHashMap<>();
-    
-    // 串口配置映射 <串口ID, SerialConfig>
-    private final Map<String, SerialConfig> serialConfigs = new ConcurrentHashMap<>();
-    
-    // 回调映射 <串口ID, 回调接口>
-    private final Map<String, OnSerialPortStatusCallback> statusCallbacks = new ConcurrentHashMap<>();
-    private final Map<String, OnSerialPortDataCallback> dataCallbacks = new ConcurrentHashMap<>();
-    
-    // 串口枚举映射 <串口ID, SerialPortEnum>
-    private final Map<String, SerialPortEnum> serialPortEnums = new ConcurrentHashMap<>();
-    
-    private MultiSerialPortManager() {}
-    
-    /**
-     * 获取单例实例
-     */
-    public static MultiSerialPortManager getInstance() {
-        if (instance == null) {
-            synchronized (MultiSerialPortManager.class) {
-                if (instance == null) {
-                    instance = new MultiSerialPortManager();
+    @Volatile
+    private var errorListener: OnSerialErrorListener? = null
+
+    @Synchronized
+    fun openSerialPort(
+        serialId: String,
+        devicePath: String,
+        baudRate: Int,
+        config: SerialConfig,
+        statusCallback: OnSerialPortStatusCallback?,
+        dataCallback: OnSerialPortDataCallback?,
+    ): Boolean {
+        require(serialId.isNotBlank()) { "serialId must not be blank" }
+        require(devicePath.isNotBlank()) { "devicePath must not be blank" }
+        require(baudRate >= 0) { "baudRate must not be negative" }
+
+        if (managers.containsKey(serialId)) {
+            SerialPortLogUtil.w(TAG, "串口[$serialId] 已存在，先关闭旧连接")
+            closeSerialPort(serialId)
+        }
+
+        SerialPortLogUtil.printSeparator(TAG, "打开串口 $serialId")
+        val token = Any()
+        val serialConfig = config.copyForConnection()
+        val portEnum = getAvailableSerialPortEnum()
+        val manager = SerialPortManager(portEnum)
+
+        connectionTokens[serialId] = token
+        configs[serialId] = serialConfig
+        portEnums[serialId] = portEnum
+
+        manager.setSerialConfig(serialConfig)
+        manager.setOnSerialErrorListener { error ->
+            val serialError = error.copy(serialId = serialId)
+            mainHandler.post {
+                if (isCurrentConnection(serialId, token)) {
+                    errorListener?.let { listener ->
+                        safely("串口[$serialId] 错误业务回调异常") {
+                            listener.onError(serialError)
+                        }
+                    }
                 }
             }
         }
-        return instance;
-    }
-    
-    /**
-     * 配置并打开串口
-     * @param serialId 串口ID（自定义标识）
-     * @param devicePath 设备路径
-     * @param baudRate 波特率
-     * @param config 串口配置
-     * @param statusCallback 状态回调
-     * @param dataCallback 数据回调
-     * @return 是否打开成功
-     */
-    public boolean openSerialPort(String serialId, String devicePath, int baudRate, 
-                                 SerialPortConfig config, OnSerialPortStatusCallback statusCallback, 
-                                 OnSerialPortDataCallback dataCallback) {
-        
-        SerialPortLogUtil.printSeparator(TAG, "打开串口 " + serialId);
-        SerialPortLogUtil.i(TAG, String.format("串口[%s] - 设备: %s, 波特率: %d", serialId, devicePath, baudRate));
-        
-        // 检查串口是否已经打开
-        if (serialPortManagers.containsKey(serialId)) {
-            SerialPortLogUtil.w(TAG, "串口[" + serialId + "]已经打开，先关闭旧连接");
-            closeSerialPort(serialId);
-        }
-        
-        // 创建串口配置
-        SerialConfig serialConfig = new SerialConfig.Builder()
-                .setEnableLogging(config.enableLogging)
-                .setIntervalSleep(config.intervalSleep)
-                .setDatabits(config.databits)
-                .setParity(config.parity)
-                .setStopbits(config.stopbits)
-                .setFlags(config.flags)
-                .setEnableStickyPacketProcessing(config.stickyPacketHelpers != null && config.stickyPacketHelpers.length > 0)
-                .setStickyPacketHelpers(config.stickyPacketHelpers != null ? config.stickyPacketHelpers : new AbsStickPackageHelper[]{new BaseStickPackageHelper()})
-                .build();
-        
-        // 保存配置和回调
-        serialConfigs.put(serialId, serialConfig);
-        if (statusCallback != null) statusCallbacks.put(serialId, statusCallback);
-        if (dataCallback != null) dataCallbacks.put(serialId, dataCallback);
-        
-        // 分配串口枚举
-        SerialPortEnum serialPortEnum = getAvailableSerialPortEnum();
-        serialPortEnums.put(serialId, serialPortEnum);
-        
-        SerialPortLogUtil.printSerialConfig(TAG + "_" + serialId, config.databits, config.parity, config.stopbits, config.flags);
-        if (config.stickyPacketHelpers != null) {
-            SerialPortLogUtil.i(TAG, String.format("串口[%s] 配置了 %d 个粘包处理器", serialId, config.stickyPacketHelpers.length));
-        }
-        
-        // 创建SerialPortManager
-        SerialPortManager serialPortManager = new SerialPortManager(serialPortEnum);
-        serialPortManager.setSerialConfig(serialConfig);
-        
-        // 设置监听器
-        serialPortManager.setOnOpenSerialPortListener(new OnOpenSerialPortListener() {
-            @Override
-            public void openState(SerialPortEnum serialPortEnum, File device, SerialStatus status) {
-                String logMessage = String.format("串口[%s] 状态变化: %s - %s", serialId, device.getPath(), status);
-                if (status == SerialStatus.SUCCESS_OPENED) {
-                    SerialPortLogUtil.i(TAG, logMessage);
-                } else {
-                    SerialPortLogUtil.e(TAG, logMessage);
+        manager.setOnOpenSerialPortListener { _, device, status ->
+            val success = status == SerialStatus.SUCCESS_OPENED
+            if (success) {
+                SerialPortLogUtil.i(TAG, "串口[$serialId] 状态变化: ${device.path} - $status")
+            } else {
+                SerialPortLogUtil.e(TAG, "串口[$serialId] 状态变化: ${device.path} - $status")
+                synchronized(this) {
+                    if (isCurrentConnection(serialId, token)) {
+                        managers.remove(serialId, manager)
+                        configs.remove(serialId)
+                        portEnums.remove(serialId)
+                    }
                 }
-                
-                handler.post(() -> {
-                    OnSerialPortStatusCallback callback = statusCallbacks.get(serialId);
-                    if (callback != null) {
-                        callback.onStatusChanged(serialId, status == SerialStatus.SUCCESS_OPENED, status);
-                    }
-                });
             }
-        });
-        
-        serialPortManager.setOnSerialPortDataListener(new OnSerialPortDataListener() {
-            @Override
-            public void onDataReceived(byte[] data, SerialPortEnum serialPortEnum) {
-                SerialPortLogUtil.printData(TAG + "_" + serialId, "接收数据", data);
-                handler.post(() -> {
-                    OnSerialPortDataCallback callback = dataCallbacks.get(serialId);
-                    if (callback != null) {
-                        callback.onDataReceived(serialId, data);
+            mainHandler.post {
+                if (!isCurrentConnection(serialId, token)) return@post
+                statusCallback?.let { callback ->
+                    safely("串口[$serialId] 状态业务回调异常") {
+                        callback.onStatusChanged(serialId, success, status)
                     }
-                });
+                }
+                if (!success) connectionTokens.remove(serialId, token)
             }
-            
-            @Override
-            public void onDataSent(byte[] data, SerialPortEnum serialPortEnum) {
-                SerialPortLogUtil.printData(TAG + "_" + serialId, "发送数据", data);
-                handler.post(() -> {
-                    OnSerialPortDataCallback callback = dataCallbacks.get(serialId);
-                    if (callback != null) {
-                        callback.onDataSent(serialId, data);
+        }
+        manager.setOnSerialPortDataListener(object : OnSerialPortDataListener {
+            override fun onDataReceived(bytes: ByteArray, serialPortEnum: SerialPortEnum) {
+                val snapshot = bytes.copyOf()
+                SerialPortLogUtil.printData("${TAG}_$serialId", "接收数据", snapshot)
+                mainHandler.post {
+                    if (isCurrentConnection(serialId, token) && dataCallback != null) {
+                        safely("串口[$serialId] 接收业务回调异常") {
+                            dataCallback.onDataReceived(serialId, snapshot)
+                        }
                     }
-                });
+                }
             }
-        });
-        
-        // 打开串口
-        boolean success = serialPortManager.openSerialPort(devicePath, baudRate);
-        if (success) {
-            serialPortManagers.put(serialId, serialPortManager);
-            SerialPortLogUtil.i(TAG, "串口[" + serialId + "] 打开成功");
+
+            override fun onDataSent(bytes: ByteArray, serialPortEnum: SerialPortEnum) {
+                val snapshot = bytes.copyOf()
+                SerialPortLogUtil.printData("${TAG}_$serialId", "发送数据", snapshot)
+                mainHandler.post {
+                    if (isCurrentConnection(serialId, token) && dataCallback != null) {
+                        safely("串口[$serialId] 发送业务回调异常") {
+                            dataCallback.onDataSent(serialId, snapshot)
+                        }
+                    }
+                }
+            }
+        })
+
+        val opened = manager.openSerialPort(devicePath, baudRate)
+        if (opened) {
+            managers[serialId] = manager
+            SerialPortLogUtil.i(TAG, "串口[$serialId] 打开成功")
         } else {
-            // 清理资源
-            serialConfigs.remove(serialId);
-            statusCallbacks.remove(serialId);
-            dataCallbacks.remove(serialId);
-            serialPortEnums.remove(serialId);
-            SerialPortLogUtil.e(TAG, "串口[" + serialId + "] 打开失败");
+            managers.remove(serialId)
+            configs.remove(serialId)
+            portEnums.remove(serialId)
+            SerialPortLogUtil.e(TAG, "串口[$serialId] 打开失败")
         }
-        
-        return success;
+        return opened
     }
-    
-    /**
-     * 简化的打开串口方法
-     */
-    public boolean openSerialPort(String serialId, String devicePath, int baudRate, 
-                                 OnSerialPortDataCallback dataCallback) {
-        SerialPortConfig config = new SerialPortConfig.Builder().build();
-        return openSerialPort(serialId, devicePath, baudRate, config, null, dataCallback);
+
+    @Deprecated("请直接使用统一的 SerialConfig")
+    fun openSerialPort(
+        serialId: String,
+        devicePath: String,
+        baudRate: Int,
+        config: SerialPortConfig,
+        statusCallback: OnSerialPortStatusCallback?,
+        dataCallback: OnSerialPortDataCallback?,
+    ): Boolean {
+        return openSerialPort(
+            serialId,
+            devicePath,
+            baudRate,
+            config.toSerialConfig(),
+            statusCallback,
+            dataCallback,
+        )
     }
-    
-    /**
-     * 发送数据到指定串口
-     * @param serialId 串口ID
-     * @param data 数据
-     * @return 是否发送成功
-     */
-    public boolean sendData(String serialId, byte[] data) {
-        SerialPortManager manager = serialPortManagers.get(serialId);
-        if (manager == null) {
-            SerialPortLogUtil.e(TAG, "串口[" + serialId + "] 未打开，无法发送数据");
-            return false;
+
+    fun openSerialPort(
+        serialId: String,
+        devicePath: String,
+        baudRate: Int,
+        dataCallback: OnSerialPortDataCallback?,
+    ): Boolean {
+        return openSerialPort(
+            serialId,
+            devicePath,
+            baudRate,
+            SerialConfig.Builder().build(),
+            null,
+            dataCallback,
+        )
+    }
+
+    fun sendData(serialId: String, data: ByteArray?): Boolean {
+        if (data == null || data.isEmpty()) {
+            SerialPortLogUtil.w(TAG, "串口[$serialId] 尝试发送空数据")
+            return false
         }
-        
-        if (data == null || data.length == 0) {
-            SerialPortLogUtil.w(TAG, "串口[" + serialId + "] 尝试发送空数据");
-            return false;
+        val manager = managers[serialId] ?: run {
+            SerialPortLogUtil.e(TAG, "串口[$serialId] 未打开，无法发送数据")
+            return false
         }
-        
-        long startTime = System.currentTimeMillis();
-        SerialPortLogUtil.printData(TAG + "_" + serialId, "准备发送", data);
-        
-        boolean result = manager.sendBytes(data);
-        SerialPortLogUtil.printPerformance(TAG + "_" + serialId, "发送数据", startTime);
-        
-        if (!result) {
-            SerialPortLogUtil.e(TAG, "串口[" + serialId + "] 数据发送失败");
+        val startTime = System.currentTimeMillis()
+        val accepted = manager.sendBytes(data)
+        SerialPortLogUtil.printPerformance("${TAG}_$serialId", "提交发送数据", startTime)
+        if (!accepted) SerialPortLogUtil.e(TAG, "串口[$serialId] 数据发送失败")
+        return accepted
+    }
+
+    fun sendData(serialId: String, data: String?): Boolean {
+        return data != null && sendData(serialId, data.toByteArray(StandardCharsets.UTF_8))
+    }
+
+    @Synchronized
+    fun closeSerialPort(serialId: String) {
+        connectionTokens.remove(serialId)
+        managers.remove(serialId)?.let { manager ->
+            SerialPortLogUtil.i(TAG, "关闭串口[$serialId]")
+            manager.closeSerialPort()
         }
-        
-        return result;
+        configs.remove(serialId)
+        portEnums.remove(serialId)
     }
-    
-    /**
-     * 发送字符串数据到指定串口
-     */
-    public boolean sendData(String serialId, String data) {
-        return sendData(serialId, data.getBytes());
+
+    @Synchronized
+    fun closeAllSerialPorts() {
+        managers.keys.toList().forEach(::closeSerialPort)
     }
-    
-    /**
-     * 关闭指定串口
-     * @param serialId 串口ID
-     */
-    public void closeSerialPort(String serialId) {
-        SerialPortManager manager = serialPortManagers.remove(serialId);
-        if (manager != null) {
-            SerialPortLogUtil.i(TAG, "关闭串口[" + serialId + "]");
-            manager.closeSerialPort();
+
+    override fun close() = closeAllSerialPorts()
+
+    fun isSerialPortOpened(serialId: String): Boolean = managers[serialId]?.isOpen() == true
+
+    val openedSerialPorts: List<String>
+        get() = managers.entries
+            .filter { (_, manager) -> manager.isOpen() }
+            .map { (serialId, _) -> serialId }
+            .sorted()
+
+    fun getSerialConfig(serialId: String): SerialConfig? = configs[serialId]
+
+    fun setOnReliableSendListener(serialId: String, listener: OnReliableSendListener?): Boolean {
+        val manager = managers[serialId] ?: return false
+        val token = connectionTokens[serialId] ?: return false
+        if (listener == null) {
+            manager.setOnReliableSendListener(null)
+            return true
         }
-        
-        // 清理相关资源
-        serialConfigs.remove(serialId);
-        statusCallbacks.remove(serialId);
-        dataCallbacks.remove(serialId);
-        serialPortEnums.remove(serialId);
-    }
-    
-    /**
-     * 关闭所有串口
-     */
-    public void closeAllSerialPorts() {
-        SerialPortLogUtil.printSeparator(TAG, "关闭所有串口");
-        List<String> serialIds = new ArrayList<>(serialPortManagers.keySet());
-        for (String serialId : serialIds) {
-            closeSerialPort(serialId);
-        }
-    }
-    
-    /**
-     * 检查指定串口是否已打开
-     */
-    public boolean isSerialPortOpened(String serialId) {
-        SerialPortManager manager = serialPortManagers.get(serialId);
-        return manager != null && manager.isOpen();
-    }
-    
-    /**
-     * 获取所有已打开的串口ID
-     */
-    public List<String> getOpenedSerialPorts() {
-        List<String> openedPorts = new ArrayList<>();
-        for (Map.Entry<String, SerialPortManager> entry : serialPortManagers.entrySet()) {
-            if (entry.getValue().isOpen()) {
-                openedPorts.add(entry.getKey());
-            }
-        }
-        return openedPorts;
-    }
-    
-    /**
-     * 获取指定串口的配置
-     */
-    public SerialConfig getSerialConfig(String serialId) {
-        return serialConfigs.get(serialId);
-    }
-    
-    /**
-     * 更新指定串口的粘包处理器
-     */
-    public boolean updateStickyPacketHelpers(String serialId, AbsStickPackageHelper[] helpers) {
-        SerialPortManager manager = serialPortManagers.get(serialId);
-        SerialConfig config = serialConfigs.get(serialId);
-        
-        if (manager == null || config == null) {
-            SerialPortLogUtil.e(TAG, "串口[" + serialId + "] 未打开，无法更新粘包处理器");
-            return false;
-        }
-        
-        config.setStickyPacketHelpers(helpers);
-        List<AbsStickPackageHelper> helperList = new ArrayList<>();
-        for (AbsStickPackageHelper helper : helpers) {
-            helperList.add(helper);
-        }
-        manager.setStickPackageHelpers(helperList);
-        
-        SerialPortLogUtil.i(TAG, String.format("串口[%s] 更新粘包处理器，数量: %d", serialId, helpers.length));
-        return true;
-    }
-    
-    /**
-     * 打印所有串口状态
-     */
-    public void printAllSerialStatus() {
-        SerialPortLogUtil.printSeparator(TAG, "所有串口状态");
-        if (serialPortManagers.isEmpty()) {
-            SerialPortLogUtil.i(TAG, "当前没有打开的串口");
-            return;
-        }
-        
-        for (Map.Entry<String, SerialPortManager> entry : serialPortManagers.entrySet()) {
-            String serialId = entry.getKey();
-            SerialPortManager manager = entry.getValue();
-            SerialConfig config = serialConfigs.get(serialId);
-            
-            SerialPortLogUtil.i(TAG, String.format("串口[%s] - 状态: %s", 
-                serialId, manager.isOpen() ? "已打开" : "已关闭"));
-            
-            if (config != null) {
-                SerialPortLogUtil.printSerialConfig(TAG + "_" + serialId, 
-                    config.getDatabits(), config.getParity(), config.getStopbits(), config.getFlags());
-            }
-        }
-    }
-    
-    /**
-     * 获取可用的串口枚举
-     */
-    private SerialPortEnum getAvailableSerialPortEnum() {
-        // 简单的策略：按顺序分配，最多支持6个串口
-        SerialPortEnum[] enums = {
-            SerialPortEnum.SERIAL_ONE,
-            SerialPortEnum.SERIAL_TWO,
-            SerialPortEnum.SERIAL_THREE,
-            SerialPortEnum.SERIAL_FOUR,
-            SerialPortEnum.SERIAL_FIVE,
-            SerialPortEnum.SERIAL_SIX
-        };
-        
-        for (SerialPortEnum serialPortEnum : enums) {
-            boolean isUsed = false;
-            for (SerialPortEnum usedEnum : serialPortEnums.values()) {
-                if (usedEnum == serialPortEnum) {
-                    isUsed = true;
-                    break;
+        manager.setOnReliableSendListener(object : OnReliableSendListener {
+            override fun onRetry(data: ByteArray, retryCount: Int, maxRetries: Int) {
+                mainHandler.post {
+                    if (isCurrentConnection(serialId, token)) {
+                        safely("串口[$serialId] 可靠发送重试业务回调异常") {
+                            listener.onRetry(data.copyOf(), retryCount, maxRetries)
+                        }
+                    }
                 }
             }
-            if (!isUsed) {
-                return serialPortEnum;
+
+            override fun onSuccess(data: ByteArray, response: ByteArray) {
+                mainHandler.post {
+                    if (isCurrentConnection(serialId, token)) {
+                        safely("串口[$serialId] 可靠发送成功业务回调异常") {
+                            listener.onSuccess(data.copyOf(), response.copyOf())
+                        }
+                    }
+                }
             }
-        }
-        
-        // 如果所有枚举都被使用，返回第一个（可能会有冲突，但至少不会崩溃）
-        SerialPortLogUtil.w(TAG, "所有串口枚举都已被使用，可能会有冲突");
-        return SerialPortEnum.SERIAL_ONE;
+
+            override fun onFailure(data: ByteArray, reason: ReliableSendFailure) {
+                mainHandler.post {
+                    if (isCurrentConnection(serialId, token)) {
+                        safely("串口[$serialId] 可靠发送失败业务回调异常") {
+                            listener.onFailure(data.copyOf(), reason)
+                        }
+                    }
+                }
+            }
+        })
+        return true
     }
-    
-    /**
-     * 串口状态回调接口
-     */
-    public interface OnSerialPortStatusCallback {
-        /**
-         * 串口状态变化
-         * @param serialId 串口ID
-         * @param success 是否成功
-         * @param status 状态
-         */
-        void onStatusChanged(String serialId, boolean success, SerialStatus status);
+
+    fun setOnSerialErrorListener(serialId: String, listener: OnSerialErrorListener?): Boolean {
+        val manager = managers[serialId] ?: return false
+        val token = connectionTokens[serialId] ?: return false
+        manager.setOnSerialErrorListener(
+            if (listener == null) {
+                null
+            } else {
+                OnSerialErrorListener { error ->
+                    mainHandler.post {
+                        if (isCurrentConnection(serialId, token)) {
+                            safely("串口[$serialId] 错误业务回调异常") {
+                                listener.onError(error.copy(serialId = serialId))
+                            }
+                        }
+                    }
+                }
+            },
+        )
+        return true
     }
-    
-    /**
-     * 串口数据回调接口
-     */
-    public interface OnSerialPortDataCallback {
-        /**
-         * 接收到数据
-         * @param serialId 串口ID
-         * @param data 数据
-         */
-        void onDataReceived(String serialId, byte[] data);
-        
-        /**
-         * 数据发送完成
-         * @param serialId 串口ID
-         * @param data 数据
-         */
-        default void onDataSent(String serialId, byte[] data) {
-            // 默认空实现
+
+    /** 设置所有串口的统一错误监听；应在打开串口前注册。 */
+    fun setOnSerialErrorListener(listener: OnSerialErrorListener?): MultiSerialPortManager = apply {
+        errorListener = listener
+    }
+
+    @Synchronized
+    fun updateStickyPacketHelpers(
+        serialId: String,
+        helpers: Array<AbsStickPackageHelper>?,
+    ): Boolean {
+        if (helpers.isNullOrEmpty()) return false
+        val manager = managers[serialId] ?: return false
+        val config = configs[serialId] ?: return false
+        config.stickyPacketHelpers = helpers
+        manager.setStickPackageHelpers(helpers.toList())
+        return true
+    }
+
+    fun printAllSerialStatus() {
+        SerialPortLogUtil.printSeparator(TAG, "所有串口状态")
+        if (managers.isEmpty()) {
+            SerialPortLogUtil.i(TAG, "当前没有打开的串口")
+            return
+        }
+        managers.forEach { (serialId, manager) ->
+            SerialPortLogUtil.i(TAG, "串口[$serialId] - 状态: ${if (manager.isOpen()) "已打开" else "已关闭"}")
+            configs[serialId]?.let { config ->
+                SerialPortLogUtil.printSerialConfig(
+                    "${TAG}_$serialId",
+                    config.databits,
+                    config.parity,
+                    config.stopbits,
+                    config.flags,
+                )
+            }
         }
     }
-    
-    /**
-     * 串口配置类
-     */
-    public static class SerialPortConfig {
-        private boolean enableLogging = true;
-        private int intervalSleep = 50;
-        private int databits = 8;
-        private int parity = 0;
-        private int stopbits = 1;
-        private int flags = 0;
-        private AbsStickPackageHelper[] stickyPacketHelpers;
-        
-        private SerialPortConfig(Builder builder) {
-            this.enableLogging = builder.enableLogging;
-            this.intervalSleep = builder.intervalSleep;
-            this.databits = builder.databits;
-            this.parity = builder.parity;
-            this.stopbits = builder.stopbits;
-            this.flags = builder.flags;
-            this.stickyPacketHelpers = builder.stickyPacketHelpers;
+
+    private fun isCurrentConnection(serialId: String, token: Any): Boolean {
+        return connectionTokens[serialId] === token
+    }
+
+    private fun getAvailableSerialPortEnum(): SerialPortEnum {
+        return SerialPortEnum.entries.firstOrNull { candidate -> candidate !in portEnums.values }
+            ?: SerialPortEnum.SERIAL_ONE.also {
+                SerialPortLogUtil.w(TAG, "已超过 6 个并发串口，回调枚举将复用 SERIAL_ONE")
+            }
+    }
+
+    private inline fun safely(message: String, action: () -> Unit) {
+        try {
+            action()
+        } catch (error: Exception) {
+            SerialPortLogUtil.e(TAG, message, error)
         }
-        
-        public static class Builder {
-            private boolean enableLogging = true;
-            private int intervalSleep = 50;
-            private int databits = 8;
-            private int parity = 0;
-            private int stopbits = 1;
-            private int flags = 0;
-            private AbsStickPackageHelper[] stickyPacketHelpers;
-            
-            public Builder setEnableLogging(boolean enableLogging) {
-                this.enableLogging = enableLogging;
-                return this;
+    }
+
+    fun interface OnSerialPortStatusCallback {
+        fun onStatusChanged(serialId: String, success: Boolean, status: SerialStatus)
+    }
+
+    interface OnSerialPortDataCallback {
+        fun onDataReceived(serialId: String, data: ByteArray)
+
+        fun onDataSent(serialId: String, data: ByteArray) = Unit
+    }
+
+    @Deprecated("请直接使用统一的 SerialConfig")
+    class SerialPortConfig private constructor(builder: Builder) {
+        internal val enableLogging = builder.enableLogging
+        internal val intervalSleep = builder.intervalSleep
+        internal val databits = builder.databits
+        internal val parity = builder.parity
+        internal val stopbits = builder.stopbits
+        internal val flags = builder.flags
+        internal val maxPacketSize = builder.maxPacketSize
+        internal val packetTimeout = builder.packetTimeout
+        internal val autoReconnect = builder.autoReconnect
+        internal val reconnectInterval = builder.reconnectInterval
+        internal val maxReconnectAttempts = builder.maxReconnectAttempts
+        internal val enableReliableSend = builder.enableReliableSend
+        internal val responseTimeoutMillis = builder.responseTimeoutMillis
+        internal val maxSendRetries = builder.maxSendRetries
+        internal val sendRetryIntervalMillis = builder.sendRetryIntervalMillis
+        internal val responseMatcher = builder.responseMatcher
+        internal val stickyPacketHelpers = builder.stickyPacketHelpers?.copyOf()
+
+        init {
+            toSerialConfig()
+        }
+
+        internal fun toSerialConfig(): SerialConfig {
+            return SerialConfig.Builder()
+                .setEnableLogging(enableLogging)
+                .setIntervalSleep(intervalSleep)
+                .setDatabits(databits)
+                .setParity(parity)
+                .setStopbits(stopbits)
+                .setFlags(flags)
+                .setEnableStickyPacketProcessing(!stickyPacketHelpers.isNullOrEmpty())
+                .setMaxPacketSize(maxPacketSize)
+                .setPacketTimeout(packetTimeout)
+                .setAutoReconnect(autoReconnect)
+                .setReconnectInterval(reconnectInterval)
+                .setMaxReconnectAttempts(maxReconnectAttempts)
+                .setEnableReliableSend(enableReliableSend)
+                .setResponseTimeoutMillis(responseTimeoutMillis)
+                .setMaxSendRetries(maxSendRetries)
+                .setSendRetryIntervalMillis(sendRetryIntervalMillis)
+                .setResponseMatcher(responseMatcher)
+                .setStickyPacketHelpers(*(stickyPacketHelpers ?: arrayOf(BaseStickPackageHelper())))
+                .build()
+        }
+
+        class Builder {
+            internal var enableLogging = true
+            internal var intervalSleep = 50
+            internal var databits = 8
+            internal var parity = 0
+            internal var stopbits = 1
+            internal var flags = 0
+            internal var maxPacketSize = 1024
+            internal var packetTimeout = 1000
+            internal var autoReconnect = false
+            internal var reconnectInterval = 5000
+            internal var maxReconnectAttempts = 3
+            internal var enableReliableSend = false
+            internal var responseTimeoutMillis = 1000
+            internal var maxSendRetries = 2
+            internal var sendRetryIntervalMillis = 100
+            internal var responseMatcher: SerialResponseMatcher? = null
+            internal var stickyPacketHelpers: Array<out AbsStickPackageHelper>? = null
+
+            fun setEnableLogging(value: Boolean) = apply { enableLogging = value }
+            fun setIntervalSleep(value: Int) = apply { intervalSleep = value }
+            fun setDatabits(value: Int) = apply { databits = value }
+            fun setParity(value: Int) = apply { parity = value }
+            fun setStopbits(value: Int) = apply { stopbits = value }
+            fun setFlags(value: Int) = apply { flags = value }
+            fun setMaxPacketSize(value: Int) = apply { maxPacketSize = value }
+            fun setPacketTimeout(value: Int) = apply { packetTimeout = value }
+            fun setAutoReconnect(value: Boolean) = apply { autoReconnect = value }
+            fun setReconnectInterval(value: Int) = apply { reconnectInterval = value }
+            fun setMaxReconnectAttempts(value: Int) = apply { maxReconnectAttempts = value }
+            fun setEnableReliableSend(value: Boolean) = apply { enableReliableSend = value }
+            fun setResponseTimeoutMillis(value: Int) = apply { responseTimeoutMillis = value }
+            fun setMaxSendRetries(value: Int) = apply { maxSendRetries = value }
+            fun setSendRetryIntervalMillis(value: Int) = apply { sendRetryIntervalMillis = value }
+            fun setResponseMatcher(value: SerialResponseMatcher?) = apply { responseMatcher = value }
+            fun setStickyPacketHelpers(vararg value: AbsStickPackageHelper) = apply {
+                stickyPacketHelpers = value.map { helper -> helper }.toTypedArray()
             }
-            
-            public Builder setIntervalSleep(int intervalSleep) {
-                this.intervalSleep = intervalSleep;
-                return this;
-            }
-            
-            public Builder setDatabits(int databits) {
-                this.databits = databits;
-                return this;
-            }
-            
-            public Builder setParity(int parity) {
-                this.parity = parity;
-                return this;
-            }
-            
-            public Builder setStopbits(int stopbits) {
-                this.stopbits = stopbits;
-                return this;
-            }
-            
-            public Builder setFlags(int flags) {
-                this.flags = flags;
-                return this;
-            }
-            
-            public Builder setStickyPacketHelpers(AbsStickPackageHelper... helpers) {
-                this.stickyPacketHelpers = helpers;
-                return this;
-            }
-            
-            public SerialPortConfig build() {
-                return new SerialPortConfig(this);
+
+            fun build(): SerialPortConfig = SerialPortConfig(this)
+        }
+    }
+
+    companion object {
+        private const val TAG = "MultiSerialPortManager"
+
+        @Volatile
+        private var instance: MultiSerialPortManager? = null
+
+        @JvmStatic
+        fun getInstance(): MultiSerialPortManager {
+            return instance ?: synchronized(this) {
+                instance ?: MultiSerialPortManager().also { instance = it }
             }
         }
+
+        /** 创建生命周期互不影响的管理器，页面或业务组件持有时优先使用。 */
+        @JvmStatic
+        fun create(): MultiSerialPortManager = MultiSerialPortManager()
     }
 }

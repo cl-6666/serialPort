@@ -1,16 +1,49 @@
 <resources>
 
     <string name="app_name">串口调试助手</string>
-    <string name="select_serial_port">串口设备:</string>
     <string name="select_baud_rate">波特率</string>
     <string name="open_serial_port">打开串口</string>
     <string name="close_serial_port">关闭串口</string>
-    <string name="no_serial_device">找不到串口设备</string>
-    <string name="send_data">发送命令</string>
-    <string name="input_data">输入命令</string>
-    <string name="load_cmd_list">加载命令列表</string>
+    <string name="action_add_serial_port">添加串口</string>
+    <string name="action_close_selected">关闭选中</string>
     <string name="title_data_bits">数据位:</string>
     <string name="title_parity">校验位:</string>
     <string name="title_stop_bits">停止位:</string>
+    <string name="refresh_devices">刷新设备</string>
+    <string name="action_close_all">全部关闭</string>
+    <string name="action_clear">清除</string>
+    <string name="empty_serial_devices">没有发现可用串口</string>
+    <string name="sdk_console_title">串口 SDK 功能控制台</string>
+    <string name="no_open_serial_ports">当前没有已打开串口</string>
+    <string name="open_serial_ports">已打开：%1$s</string>
+    <string name="connection_config">连接与协议配置</string>
+    <string name="opened_port_management">已打开串口（选择后可单独关闭）</string>
+    <string name="serial_id_hint">串口 ID，例如 PORT_1</string>
+    <string name="serial_device">串口设备</string>
+    <string name="packet_strategy">拆包策略</string>
+    <string name="auto_reconnect">异常断线自动重连</string>
+    <string name="reconnect_interval_hint">重连间隔 ms</string>
+    <string name="reconnect_attempts_hint">最大重连次数</string>
+    <string name="reliable_send">响应超时自动重发</string>
+    <string name="response_timeout_hint">响应超时 ms</string>
+    <string name="send_retries_hint">最大重发次数</string>
+    <string name="data_console">状态与收发日志</string>
+    <string name="send_panel">发送数据</string>
+    <string name="send_target">发送目标</string>
+    <string name="no_available_send_target">暂无可用串口</string>
+    <string name="send_data_hint">输入文本或 HEX，例如 01 03 00 00</string>
+    <string name="send_preview_empty">数据转换预览：等待输入</string>
+    <string name="send_preview_content">数据转换预览 · %1$d 字节\n文本：%2$s\nHEX：%3$s</string>
+    <string name="send_preview_error">数据转换失败：%1$s</string>
+    <string name="action_send_current">发送当前</string>
+    <string name="action_send_all">全部发送</string>
+    <string name="multi_port_tip">每次添加成功后会自动切换到下一个 ID 和未使用设备；可按目标单独发送，也可向全部串口发送。</string>
+    <string name="error_serial_id_in_use">该串口 ID 已打开，请使用新的 ID</string>
+    <string name="unknown_serial_device">设备信息不可用</string>
+    <string name="default_serial_id" translatable="false">PORT_1</string>
+    <string name="default_reconnect_interval" translatable="false">3000</string>
+    <string name="default_reconnect_attempts" translatable="false">5</string>
+    <string name="default_response_timeout" translatable="false">1000</string>
+    <string name="default_send_retries" translatable="false">2</string>
 
 </resources>

@@ -1,90 +1,71 @@
-package com.cl.serialportlibrary;
+package com.cl.serialportlibrary
 
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.File
+import java.io.FileReader
+import java.io.IOException
+import java.io.LineNumberReader
 
-import com.cl.serialportlibrary.utils.SerialPortLogUtil;
+/** 读取 Linux tty 驱动信息并枚举串口设备。 */
+class SerialPortFinder {
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.LineNumberReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Vector;
-
-public class SerialPortFinder {
-
-    private static final String TAG = SerialPortFinder.class.getSimpleName();
-    private static final String DRIVERS_PATH = "/proc/tty/drivers";
-    private static final String SERIAL_FIELD = "serial";
-
-    public SerialPortFinder() {
-        File file = new File(DRIVERS_PATH);
-        boolean b = file.canRead();
-        SerialPortLogUtil.i(TAG, "SerialPortFinder: file.canRead() = " + b);
+    init {
+        SerialPortLogUtil.d(TAG, "$DRIVERS_PATH canRead=${File(DRIVERS_PATH).canRead()}")
     }
 
-    /**
-     * 获取 Drivers
-     *
-     * @return Drivers
-     * @throws IOException IOException
-     */
-    private ArrayList<Driver> getDrivers() throws IOException {
-        ArrayList<Driver> drivers = new ArrayList<>();
-        LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(DRIVERS_PATH));
-        String readLine;
-        while ((readLine = lineNumberReader.readLine()) != null) {
-            String driverName = readLine.substring(0, 0x15).trim();
-            String[] fields = readLine.split(" +");
-            if ((fields.length >= 5) && (fields[fields.length - 1].equals(SERIAL_FIELD))) {
-                SerialPortLogUtil.d(TAG, "Found new driver " + driverName + " on " + fields[fields.length - 4]);
-                drivers.add(new Driver(driverName, fields[fields.length - 4]));
-            }
-        }
-        return drivers;
-    }
-
-    /**
-     * 获取串口
-     *
-     * @return 串口
-     */
-    public ArrayList<Device> getDevices() {
-        ArrayList<Device> devices = new ArrayList<>();
-        try {
-            ArrayList<Driver> drivers = getDrivers();
-            for (Driver driver : drivers) {
-                String driverName = driver.getName();
-                ArrayList<File> driverDevices = driver.getDevices();
-                for (File file : driverDevices) {
-                    String devicesName = file.getName();
-                    devices.add(new Device(devicesName, driverName, file));
+    private fun getDrivers(): List<Driver> {
+        return LineNumberReader(FileReader(DRIVERS_PATH)).useLines { lines ->
+            lines.mapNotNull { line ->
+                val fields = line.trim().split(WHITESPACE_REGEX)
+                if (fields.size < MIN_DRIVER_FIELDS || fields.last() != SERIAL_FIELD) {
+                    return@mapNotNull null
                 }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+                val driverName = line.substring(0, minOf(line.length, DRIVER_NAME_END_INDEX)).trim()
+                val deviceRoot = fields[fields.lastIndex - DEVICE_ROOT_OFFSET]
+                SerialPortLogUtil.d(TAG, "发现串口驱动 $driverName，设备前缀 $deviceRoot")
+                Driver(driverName, deviceRoot)
+            }.toList()
         }
-        return devices;
     }
 
-
-    public String[] getAllDevicesPath() {
-        Vector<String> devices = new Vector<String>();
-        // Parse each driver
-        Iterator<Driver> itdriv;
-        try {
-            itdriv = getDrivers().iterator();
-            while (itdriv.hasNext()) {
-                Driver driver = itdriv.next();
-                Iterator<File> itdev = driver.getDevices().iterator();
-                while (itdev.hasNext()) {
-                    String device = itdev.next().getAbsolutePath();
-                    devices.add(device);
+    val devices: ArrayList<Device>
+        get() {
+            val result = ArrayList<Device>()
+            runCatching { getDrivers() }
+                .onSuccess { drivers ->
+                    drivers.forEach { driver ->
+                        driver.getDevices().forEach { file ->
+                            result += Device(file.name, driver.getName(), file)
+                        }
+                    }
                 }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+                .onFailure { error ->
+                    SerialPortLogUtil.e(TAG, "读取串口设备列表失败", error)
+                }
+            return result
         }
-        return devices.toArray(new String[devices.size()]);
+
+    val allDevicesPath: Array<String>
+        get() {
+            return try {
+                getDrivers()
+                    .flatMap { driver -> driver.getDevices() }
+                    .map { file -> file.absolutePath }
+                    .sorted()
+                    .toTypedArray()
+            } catch (error: IOException) {
+                SerialPortLogUtil.e(TAG, "读取串口路径列表失败", error)
+                emptyArray()
+            }
+        }
+
+    private companion object {
+        private const val TAG = "SerialPortFinder"
+        private const val DRIVERS_PATH = "/proc/tty/drivers"
+        private const val SERIAL_FIELD = "serial"
+        private const val MIN_DRIVER_FIELDS = 5
+        private const val DEVICE_ROOT_OFFSET = 3
+        private const val DRIVER_NAME_END_INDEX = 0x15
+        private val WHITESPACE_REGEX = Regex("\\s+")
     }
 }

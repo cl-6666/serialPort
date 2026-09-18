@@ -1,43 +1,15 @@
-package com.cl.serialportlibrary;
+package com.cl.serialportlibrary
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.File
+import java.io.Serializable
 
-
-public class Device implements Serializable{
-
-    private static final String TAG = Device.class.getSimpleName();
-    private String name;
-    private String root;
-    private File file;
-
-    public Device(String name, String root, File file) {
-        this.name = name;
-        this.root = root;
-        this.file = file;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getRoot() {
-        return root;
-    }
-
-    public void setRoot(String root) {
-        this.root = root;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File path) {
-        this.file = file;
+open class Device(
+    open var name: String,
+    open var root: String,
+    open var file: File?,
+) : Serializable {
+    private companion object {
+        private const val serialVersionUID = 1967121468038781131L
+        private const val TAG = "Device"
     }
 }

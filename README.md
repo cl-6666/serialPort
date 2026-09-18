@@ -1,530 +1,379 @@
-# Android串口通信框架 SerialPort
+# Android 串口通信框架 SerialPort
 
 [中文](README.md) | [English](README_EN.md)
 
 [![Version](https://img.shields.io/badge/version-5.0.8-blue.svg)](https://github.com/cl-6666/serialPort)
-[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
+[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg)](https://developer.android.com/tools/releases/platforms)
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-> 一个灵活、高效并且轻量的Android串口通信框架，让串口操作变得简单易用。支持单串口、多串口、粘包处理、自定义配置等功能。
+一个面向 Android 设备的轻量串口 SDK。支持单串口、多串口、协议拆包、异常断线重连、响应超时重发、统一错误回调和可替换日志输出。
 
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/multiple_images.png" width="650" height="360" alt="演示"/>  
+<p align="center">
+  <img src="img/introduce1.png" width="100%" alt="串口 SDK 功能控制台" />
+</p>
 
-## 📱 体验演示
+## 功能特性
 
-想要快速体验串口通信框架的强大功能？直接下载演示 APK 安装到您的 Android 设备上试试吧！
+- Kotlin 实现，Java 项目也可调用。
+- 支持单串口和多串口，每路连接使用独立配置和收发队列。
+- 支持 5～8 数据位、奇偶校验、SPACE/MARK 校验和 1/2 停止位。
+- 支持原始数据、分隔符、固定长度、变长协议、空闲超时和自定义拆包器。
+- 支持异常断线自动重连，可配置间隔和最大次数。
+- 支持响应超时自动重发，可自定义响应匹配规则。
+- 收发运行在 IO 协程，发送队列按顺序写入。
+- 支持统一错误对象、自定义日志输出和关闭详细日志。
+- 支持 `arm64-v8a`、`armeabi-v7a`、`x86`、`x86_64`。
+- Android 5.0（API 21）及以上；64 位原生库已配置 16 KB 页面大小链接选项。
 
-<div align="center">
+## 安装
 
-### 📥 [点击下载演示 APK](https://www.pgyer.com/XNzY)
+在根项目仓库中加入 JitPack：
 
-[![Download APK](https://img.shields.io/badge/Download-APK%20v5.0.8-brightgreen.svg?style=for-the-badge&logo=android)](https://www.pgyer.com/XNzY)
-
-**版本**: v5.0.8 | **大小**: ~7 MB | **API**: 21+ | **架构**: arm64-v8a, armeabi-v7a, x86, x86_64
-
-</div>
-
-### 演示 APK 功能
-
-- ✅ 单串口通信演示
-- ✅ 多串口管理演示
-- ✅ 粘包处理策略切换
-- ✅ 串口参数配置（数据位、校验位、停止位）
-- ✅ 实时数据收发测试
-- ✅ 十六进制/ASCII 数据显示
-- ✅ 性能测试与统计
-
-> **提示**: 演示 APK 需要在具有串口的 Android 设备上运行（如工控设备、开发板等）。如果您的设备没有串口，可以查看源码了解使用方法。
-
-## ⭐ 特性
-
-- 🚀 **简单易用** - 链式调用，一行代码完成配置
-- 🔧 **多串口支持** - 同时管理多个串口，独立配置
-- 📦 **智能粘包处理** - 支持多种粘包策略，可动态切换
-- ⚡ **高性能** - 多线程处理，线程安全设计
-- 🛡️ **稳定可靠** - 完善的错误处理和资源管理
-- 📝 **详细日志** - 丰富的调试信息，方便排查问题
-- 🎯 **灵活配置** - 支持数据位、校验位、停止位等参数配置
-- ✨ **Google Play 认证** - 支持 16KB 页面对齐，完全符合 Google Play 上架要求
-
-## 📖 版本说明
-
-- **当前版本**: 5.0.8 (推荐) - 全新架构，功能强大，支持 Google Play 16KB 页面对齐
-- **历史版本**: [4.1.1版本文档](README4.1.1.md) - 稳定版本
-
-### 5.0.8 版本更新 🔥 (2025-12-25)
-
-- ✅ **16KB 页面对齐**: 完全适配 Google Play 16KB 页面大小要求
-- ✅ **Android 15 支持**: 兼容最新 Android 15 系统
-- ✅ **原生库优化**: arm64-v8a 架构原生库已通过 Google Play 审核标准
-- ✅ **向后兼容**: 完全兼容旧版本 Android 设备，无需修改代码
-
-> **重要提示**: 从 2024 年开始，Google Play 要求所有 arm64-v8a 原生库必须支持 16KB 页面大小。5.0.8 版本已完全适配此要求，可放心上架 Google Play。
-
-
-## 🚀 快速开始
-
-### 依赖集成
-
-在项目的 `build.gradle` 中添加依赖：
-
-```gradle
-dependencies {
-   implementation 'com.github.cl-6666:serialPort:v5.0.8'
-}
-```
-
-在项目根目录的 `build.gradle` 中添加：
-
-```gradle
-allprojects {
+```groovy
+dependencyResolutionManagement {
     repositories {
+        google()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
     }
 }
 ```
 
-### 权限配置
+在应用模块中加入依赖：
 
-在 `AndroidManifest.xml` 中添加必要权限：
-
-```xml
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-```
-
-## 📚 使用指南
-
-### 1️⃣ 单串口使用 - 基础示例
-
-#### 最简单的使用方式
-
-```java
-public class MainActivity extends AppCompatActivity {
-    
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        // 一行代码打开串口并接收数据
-        SimpleSerialPortManager.getInstance()
-            .openSerialPort("/dev/ttyS4", 115200, data -> {
-                String receivedData = new String(data);
-                Log.i("Serial", "收到数据: " + receivedData);
-                // 处理接收到的数据
-            });
-    }
-    
-    // 发送数据
-    private void sendData() {
-        SimpleSerialPortManager.getInstance().sendData("Hello World");
-    }
-    
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // 关闭串口
-        SimpleSerialPortManager.getInstance().closeSerialPort();
-    }
+```groovy
+dependencies {
+    implementation 'com.github.cl-6666:serialPort:v5.0.8'
 }
 ```
 
-#### 完整配置示例
+如果直接复制 AAR，调用方还需要提供 Kotlin 标准库和协程 Core：
 
-```java
-public class App extends Application {
-    
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        
-        // 全局配置（可选）
-        new SimpleSerialPortManager.QuickConfig()
-            .setIntervalSleep(50)                    // 读取间隔50ms
-            .setEnableLog(true)                      // 启用日志
-            .setLogTag("SerialPortApp")              // 设置日志标签
-            .setDatabits(8)                          // 数据位8
-            .setParity(0)                            // 无校验
-            .setStopbits(1)                          // 停止位1
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING)
-            .apply(this);
-    }
-}
+```groovy
+implementation files('libs/serial_lib-release.aar')
+implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.0.21'
+implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
 ```
 
-### 2️⃣ 数据位、校验位、停止位配置
+SDK 不需要 `Application`、`Context` 或 Android Manifest 权限。应用进程必须对目标 `/dev/tty*` 节点具有读写权限；普通应用通常需要系统签名、设备厂商授权、SELinux 配置或 root 环境支持。
 
-```java
-public class SerialConfigExample {
-    
-    public void configureSerialParams() {
-        SimpleSerialPortManager manager = SimpleSerialPortManager.getInstance();
-        
-        // 方式1：使用QuickConfig配置
-        new SimpleSerialPortManager.QuickConfig()
-            .setDatabits(8)        // 数据位：5, 6, 7, 8
-            .setParity(0)          // 校验位：0=无校验, 1=奇校验, 2=偶校验
-            .setStopbits(1)        // 停止位：1 或 2
-            .setFlags(0)           // 标志位
-            .apply(getApplication());
-        
-        // 方式2：动态设置
-        manager.setDatabits(8)     // 设置数据位
-               .setParity(2)       // 设置偶校验
-               .setStopbits(1)     // 设置停止位1
-               .setFlags(0);       // 设置标志位
-        
-        // 打开串口
-        manager.openSerialPort("/dev/ttyS4", 115200, data -> {
-            Log.i("Serial", "数据: " + new String(data));
-        });
-    }
-    
-    // 常用配置组合
-    public void commonConfigurations() {
-        SimpleSerialPortManager manager = SimpleSerialPortManager.getInstance();
-        
-        // 标准配置 8N1 (8数据位, 无校验, 1停止位)
-        manager.setDatabits(8).setParity(0).setStopbits(1);
-        
-        // Modbus RTU 8E1 (8数据位, 偶校验, 1停止位) 
-        manager.setDatabits(8).setParity(2).setStopbits(1);
-        
-        // 老式设备 7E2 (7数据位, 偶校验, 2停止位)
-        manager.setDatabits(7).setParity(2).setStopbits(2);
-    }
-}
-```
+## 快速开始：单串口
 
-### 3️⃣ 粘包处理详解
+推荐使用 `create()` 创建与页面或业务组件生命周期一致的管理器。配置完成后必须先调用 `init(config)`：
 
-粘包是串口通信中常见的问题，5.0.0版本提供了多种处理策略：
+```kotlin
+private val serialManager = SimpleSerialPortManager.create()
 
-```java
-public class StickyPacketExample {
-    
-    public void noProcessing() {
-        // 策略1：不处理粘包 - 适用于简单数据流
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING)
-            .apply(this);
-    }
-    
-    public void delimiterBased() {
-        // 策略2：基于分隔符 - 适用于文本协议
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.DELIMITER_BASED)
-            .apply(this);
-        
-        // 自定义分隔符
-        SimpleSerialPortManager.getInstance()
-            .configureStickyPacket(SimpleSerialPortManager.StickyPacketStrategy.DELIMITER_BASED);
-    }
-    
-    public void fixedLength() {
-        // 策略3：固定长度 - 适用于固定长度协议
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.FIXED_LENGTH)
-            .apply(this);
-    }
-    
-    public void variableLength() {
-        // 策略4：可变长度 - 适用于带长度字段的协议
-        new SimpleSerialPortManager.QuickConfig()
-            .setStickyPacketStrategy(SimpleSerialPortManager.StickyPacketStrategy.VARIABLE_LENGTH)
-            .apply(this);
-    }
-}
-```
+private fun openSerialPort() {
+    val config = SerialConfig.Builder()
+        .setDatabits(8)
+        .setParity(0)
+        .setStopbits(1)
+        .setEnableLogging(BuildConfig.DEBUG)
+        .build()
 
-### 4️⃣ 多串口管理 - 强大功能
-
-```java
-public class MultiSerialExample {
-    
-    public void basicMultiSerial() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // 串口1：GPS模块，不需要粘包处理
-        manager.openSerialPort("GPS", "/dev/ttyS1", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(8)
-                .setParity(0)
-                .setStopbits(1)
-                .setStickyPacketHelpers(new BaseStickPackageHelper()) // 不处理粘包
-                .build(),
-            // 状态回调
-            (serialId, success, status) -> {
-                Log.i("GPS", "状态: " + (success ? "成功" : "失败"));
-            },
-            // 数据回调
-            (serialId, data) -> {
-                String gpsData = new String(data);
-                Log.i("GPS", "数据: " + gpsData);
-                handleGpsData(gpsData);
-            });
-        
-        // 串口2：传感器模块，需要换行符分包
-        manager.openSerialPort("SENSOR", "/dev/ttyS2", 115200,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(8)
-                .setParity(0) 
-                .setStopbits(1)
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\n")) // 换行符分包
-                .build(),
-            null, // 不需要状态回调
-            (serialId, data) -> {
-                String sensorData = new String(data).trim();
-                Log.i("SENSOR", "数据: " + sensorData);
-                handleSensorData(sensorData);
-            });
-        
-        // 发送数据到不同串口
-        manager.sendData("GPS", "AT+GPS?\r\n");
-        manager.sendData("SENSOR", "READ_TEMP\n");
-    }
-    
-    // 动态管理串口
-    public void dynamicManagement() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // 查看串口状态
-        List<String> openedPorts = manager.getOpenedSerialPorts();
-        boolean isOpened = manager.isSerialPortOpened("GPS");
-        manager.printAllSerialStatus();
-        
-        // 动态更新粘包策略
-        manager.updateStickyPacketHelpers("GPS", 
-            new AbsStickPackageHelper[]{new SpecifiedStickPackageHelper("\r\n")});
-        
-        // 关闭特定串口
-        manager.closeSerialPort("GPS");
-        
-        // 关闭所有串口
-        manager.closeAllSerialPorts();
-    }
-}
-```
-
-## 🎯 实际应用场景
-
-### 工业控制场景
-```java
-public class IndustrialControlExample {
-    
-    public void setupIndustrialPorts() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // PLC通信 - Modbus RTU
-        manager.openSerialPort("PLC", "/dev/ttyS1", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(8).setParity(2).setStopbits(1) // 8E1
-                .setStickyPacketHelpers(new StaticLenStickPackageHelper(8))
-                .build(),
-            null, this::handlePlcData);
-        
-        // 传感器数据采集 - 文本协议
-        manager.openSerialPort("SENSORS", "/dev/ttyS3", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setDatabits(7).setParity(2).setStopbits(1) // 7E1
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\r\n"))
-                .build(),
-            null, this::handleSensorData);
-    }
-}
-```
-
-### 通信网关场景
-```java
-public class GatewayExample {
-    
-    public void setupGateway() {
-        MultiSerialPortManager manager = SimpleSerialPortManager.multi();
-        
-        // 上行通信（与服务器）
-        manager.openSerialPort("UPLINK", "/dev/ttyS1", 115200,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\n"))
-                .build(),
-            null, this::handleUplinkData);
-        
-        // 下行设备1 - GPS
-        manager.openSerialPort("GPS", "/dev/ttyS2", 9600,
-            new MultiSerialPortManager.SerialPortConfig.Builder()
-                .setStickyPacketHelpers(new SpecifiedStickPackageHelper("\r\n"))
-                .build(),
-            null, data -> forwardToUplink("GPS", data));
-    }
-    
-    private void forwardToUplink(String deviceId, byte[] data) {
-        String message = String.format("[%s]%s\n", deviceId, new String(data));
-        SimpleSerialPortManager.multi().sendData("UPLINK", message);
-    }
-}
-```
-
-## 🔧 高级功能
-
-### 日志系统
-```java
-// 启用详细日志
-SerialPortLogUtil.setDebugEnabled(true);
-
-// 自定义日志输出
-SerialPortLogUtil.i("MyTag", "自定义日志信息");
-SerialPortLogUtil.printData("发送", data); // 十六进制+ASCII显示
-SerialPortLogUtil.printSerialConfig("MySerial", 8, 0, 1, 0); // 配置信息
-```
-
-### 错误处理
-```java
-manager.openSerialPort("TEST", "/dev/ttyS1", 9600,
-    (serialId, success, status) -> {
-        if (!success) {
-            switch (status) {
-                case NO_READ_WRITE_PERMISSION:
-                    Log.e("Serial", "权限不足");
-                    break;
-                case OPEN_FAIL:
-                    Log.e("Serial", "打开失败");
-                    break;
-            }
+    serialManager
+        .init(config)
+        .setOnSerialErrorListener { error ->
+            Log.e("Serial", "${error.code}: ${error.message}", error.cause)
         }
-    },
-    dataCallback);
+
+    val opened = serialManager.openSerialPort(
+        devicePath = "/dev/ttyS4",
+        baudRate = 115200,
+        openCallback = { success, status ->
+            Log.i("Serial", "opened=$success, status=$status")
+        },
+        dataCallback = object : SimpleSerialPortManager.OnDataReceivedCallback {
+            override fun onDataReceived(data: ByteArray) {
+                Log.d("Serial", "RX=${data.toHexString()}")
+            }
+
+            override fun onDataSent(data: ByteArray) {
+                Log.d("Serial", "TX=${data.toHexString()}")
+            }
+        },
+    )
+
+    if (!opened) Log.e("Serial", "串口打开请求失败")
+}
+
+private fun sendCommand() {
+    val accepted = serialManager.sendData(byteArrayOf(0x01, 0x03, 0x00, 0x00))
+    if (!accepted) Log.e("Serial", "连接不可用或发送队列已满")
+}
+
+override fun onDestroy() {
+    serialManager.close()
+    super.onDestroy()
+}
+
+private fun ByteArray.toHexString(): String =
+    joinToString(" ") { byte -> "%02X".format(byte.toInt() and 0xFF) }
 ```
 
-## 🛠️ 故障排查
+`openSerialPort()` 是同步接口。设备权限检查可能较慢，正式项目建议在工作线程或 `Dispatchers.IO` 中调用；门面管理器的状态、收发、可靠发送和错误回调会切换到主线程。
 
-### 常见问题
+## 多串口
 
-1. **串口打开失败**
-   ```java
-   // 检查设备路径
-   String[] devices = new SerialPortFinder().getAllDevicesPath();
-   
-   // 检查权限
-   File deviceFile = new File("/dev/ttyS4");
-   boolean canRead = deviceFile.canRead();
-   boolean canWrite = deviceFile.canWrite();
-   ```
+使用 `createMulti()` 创建独立的多串口管理器。每一路串口使用唯一 ID，并在打开时传入自己的 `SerialConfig`：
 
-2. **数据接收不完整**
-   ```java
-   // 启用日志查看原始数据
-   SerialPortLogUtil.setDebugEnabled(true);
-   
-   // 尝试不同的粘包策略
-   manager.configureStickyPacket(SimpleSerialPortManager.StickyPacketStrategy.NO_PROCESSING);
-   ```
+```kotlin
+private val serialPorts = SimpleSerialPortManager.createMulti()
 
-## 📖 API参考
+private fun openPort(serialId: String, path: String, baudRate: Int) {
+    val config = SerialConfig.Builder()
+        .setDatabits(8)
+        .setParity(0)
+        .setStopbits(1)
+        .setStickyPacketHelpers(SpecifiedStickPackageHelper("\r\n"))
+        .build()
 
-### SimpleSerialPortManager (单串口)
-| 方法 | 说明 |
-|------|------|
-| `getInstance()` | 获取单例实例 |
-| `openSerialPort(path, baudRate, callback)` | 打开串口 |
-| `sendData(data)` | 发送数据 |
-| `closeSerialPort()` | 关闭串口 |
-| `setDatabits(databits)` | 设置数据位 |
-| `setParity(parity)` | 设置校验位 |
-| `setStopbits(stopbits)` | 设置停止位 |
+    val opened = serialPorts.openSerialPort(
+        serialId,
+        path,
+        baudRate,
+        config,
+        { id, success, status ->
+            Log.i("Serial", "[$id] opened=$success, status=$status")
+        },
+        object : MultiSerialPortManager.OnSerialPortDataCallback {
+            override fun onDataReceived(serialId: String, data: ByteArray) {
+                Log.d("Serial", "RX [$serialId] ${data.size} bytes")
+            }
 
-### MultiSerialPortManager (多串口)
-| 方法 | 说明 |
-|------|------|
-| `getInstance()` | 获取实例 |
-| `openSerialPort(id, path, baudRate, config, statusCallback, dataCallback)` | 打开串口 |
-| `sendData(serialId, data)` | 发送数据到指定串口 |
-| `closeSerialPort(serialId)` | 关闭指定串口 |
-| `closeAllSerialPorts()` | 关闭所有串口 |
-| `isSerialPortOpened(serialId)` | 检查串口状态 |
+            override fun onDataSent(serialId: String, data: ByteArray) {
+                Log.d("Serial", "TX [$serialId] ${data.size} bytes")
+            }
+        },
+    )
 
-## 🎯 版本迁移
+    if (!opened) Log.e("Serial", "[$serialId] 打开失败")
+}
 
-### 从4.1.1迁移到5.0.0
+private fun usePorts() {
+    openPort("GPS", "/dev/ttyS1", 9600)
+    openPort("SENSOR", "/dev/ttyS2", 115200)
 
-**旧版本 (4.1.1)**:
-```java
-// 在Application中初始化
-SerialUtils.getInstance().init(this, true, "TAG", 50, 8, 0, 1);
+    serialPorts.sendData("GPS", "AT+GPS?\r\n")
+    serialPorts.sendData("SENSOR", byteArrayOf(0x01, 0x03))
 
-// 使用
-SerialUtils.getInstance().setmSerialPortDirectorListens(...);
-SerialUtils.getInstance().manyOpenSerialPort(list);
+    val openedIds = serialPorts.openedSerialPorts
+    val gpsOpened = serialPorts.isSerialPortOpened("GPS")
+
+    serialPorts.closeSerialPort("GPS")
+    serialPorts.closeAllSerialPorts()
+}
 ```
 
-**新版本 (5.0.0)**:
-```java
-// 简化的初始化（可选）
-new SimpleSerialPortManager.QuickConfig()
-    .setDatabits(8).setParity(0).setStopbits(1)
-    .apply(this);
+同一个 ID 再次打开时，SDK 会先关闭该 ID 的旧连接。业务层应保证 ID 和设备路径唯一，避免意外替换或重复打开同一设备。
 
-// 直接使用
-SimpleSerialPortManager.getInstance()
-    .openSerialPort("/dev/ttyS4", 115200, data -> {
-        // 处理数据
-    });
+## 串口配置
+
+推荐通过统一的 `SerialConfig` 配置单串口和多串口：
+
+```kotlin
+val config = SerialConfig.Builder()
+    .setDatabits(8)                 // 5、6、7、8
+    .setParity(0)                   // 0无、1奇、2偶、3 SPACE、4 MARK
+    .setStopbits(1)                 // 1、2
+    .setFlags(0)
+    .setIntervalSleep(50)           // 原始数据模式无数据时的轮询间隔
+    .setMaxPacketSize(1_024)        // 单个数据包最大字节数
+    .setPacketTimeout(1_000)        // 半包超过 1 秒未完成则丢弃并继续接收
+    .setAutoReconnect(true)
+    .setReconnectInterval(3_000)
+    .setMaxReconnectAttempts(5)
+    .build()
 ```
 
-## 📞 联系我们
+`SerialConfig` 会在构建时校验数据位、停止位、校验位和超时参数，非法值会抛出 `IllegalArgumentException`。
 
-- **QQ群**: 458173716
-- **博客**: https://blog.csdn.net/a214024475/article/details/113735085
-- **GitHub**: https://github.com/cl-6666/serialPort
+`packetTimeout` 从收到首字节后开始按“字节间空闲时间”计时，不会因为串口暂时没有数据而触发。超时或超长数据包会通过 `OnSerialErrorListener` 分别报告 `PACKET_TIMEOUT`、`PACKET_TOO_LARGE`，接收任务随后继续运行。
 
+## 拆包策略
 
-### PC端串口调试助手
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/pc_ck.jpg" width="440" height="320" alt="PC调试助手"/>
+| 处理器 | 适用场景 | 示例 |
+|---|---|---|
+| `BaseStickPackageHelper` | 原始字节流 | `BaseStickPackageHelper(50)` |
+| `SpecifiedStickPackageHelper` | 换行、AT、头尾标识协议 | `SpecifiedStickPackageHelper("\r\n")` |
+| `StaticLenStickPackageHelper` | 固定长度协议 | `StaticLenStickPackageHelper(8)` |
+| `VariableLenStickPackageHelper` | 包内包含长度字段 | `VariableLenStickPackageHelper(ByteOrder.BIG_ENDIAN, 2, 2, 12)` |
+| `TimeoutStickPackageHelper` | 空闲一段时间视为一包 | `TimeoutStickPackageHelper(50)` |
+| `CompositeStickPackageHelper` | 主策略和备用策略组合 | `CompositeStickPackageHelper(primary, fallback)` |
 
-**下载链接**: https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh  
-
-### QQ技术交流群
-<img src="https://github.com/cl-6666/serialPort/blob/master/img/qq2.jpg" width="350" height="560" alt="QQ群"/>
-
-**QQ群号**: 458173716
-
-## 🔬 技术说明
-
-### 16KB 页面对齐适配 (v5.0.8)
-
-从 2024 年开始，Google Play 要求所有使用原生库（.so 文件）的应用必须支持 16KB 页面大小，以适配最新的 Android 设备。本库已完全适配此要求。
-
-#### 技术实现
-
-我们在 CMake 构建配置中针对 arm64-v8a 架构添加了以下链接器标志：
-
-```cmake
-# CMakeLists.txt
-if(ANDROID_ABI STREQUAL "arm64-v8a")
-    target_compile_options(SerialPort PRIVATE -fno-emulated-tls)
-    target_link_options(SerialPort PRIVATE 
-        "LINKER:-z,max-page-size=16384"
-        "LINKER:-z,common-page-size=16384")
-endif()
+```kotlin
+val config = SerialConfig.Builder()
+    .setEnableStickyPacketProcessing(true)
+    .setStickyPacketHelpers(SpecifiedStickPackageHelper("\n"))
+    .build()
 ```
 
-#### 兼容性说明
+自定义协议可以实现 `AbsStickPackageHelper`：
 
-- ✅ **完全兼容**: 支持所有 Android 5.0+ (API 21+) 设备
-- ✅ **无需修改**: 开发者无需修改任何代码，直接升级即可
-- ✅ **性能优化**: 16KB 页面对齐可提升部分设备的内存管理效率
-- ✅ **Google Play 认证**: 已通过 Google Play 的 16KB 页面对齐检测
+```kotlin
+val customHelper = AbsStickPackageHelper { inputStream ->
+    // 阻塞读取并在得到一帧完整数据后返回 ByteArray
+    null
+}
+```
 
-#### 验证方法
+## 自动重连
 
-使用 Android Studio 的 APK Analyzer 工具可以验证原生库是否支持 16KB 页面对齐：
+```kotlin
+val config = SerialConfig.Builder()
+    .setAutoReconnect(true)
+    .setReconnectInterval(3_000)
+    .setMaxReconnectAttempts(5)
+    .build()
+```
 
-1. 构建 APK 或 AAB 文件
-2. 在 Android Studio 中选择 `Build` → `Analyze APK...`
-3. 查看 `lib/arm64-v8a/libSerialPort.so` 的 `Alignment` 列
-4. 显示 `16 KB` 表示已正确配置
+- 只有读写异常或设备节点消失才会触发自动重连。
+- 主动调用 `closeSerialPort()` 或 `close()` 不会触发重连。
+- 重连成功会再次回调 `SUCCESS_OPENED`。
+- 达到最大次数后会回调 `OPEN_FAIL`，并报告 `RECONNECT_EXHAUSTED`。
 
-#### 相关资源
+## 响应超时重发
 
-- [Google Play 16KB 页面大小要求](https://developer.android.com/guide/practices/page-sizes)
-- [CMake 链接器选项文档](https://cmake.org/cmake/help/latest/command/target_link_options.html)
+```kotlin
+val config = SerialConfig.Builder()
+    .setEnableReliableSend(true)
+    .setResponseTimeoutMillis(1_000)
+    .setMaxSendRetries(2)
+    .setSendRetryIntervalMillis(200)
+    .setResponseMatcher { request, response ->
+        request.isNotEmpty() && response.isNotEmpty() && request[0] == response[0]
+    }
+    .build()
+```
+
+```kotlin
+serialManager.setOnReliableSendListener(object : OnReliableSendListener {
+    override fun onRetry(data: ByteArray, retryCount: Int, maxRetries: Int) {
+        Log.w("Serial", "retry=$retryCount/$maxRetries")
+    }
+
+    override fun onSuccess(data: ByteArray, response: ByteArray) {
+        Log.i("Serial", "收到匹配响应")
+    }
+
+    override fun onFailure(data: ByteArray, reason: ReliableSendFailure) {
+        Log.e("Serial", "可靠发送失败: $reason")
+    }
+})
+```
+
+多串口需要在对应连接打开成功后调用 `setOnReliableSendListener(serialId, listener)`。
+
+没有设置 `responseMatcher` 时，任意非空数据包都会被视为当前请求的响应。协议存在主动上报或并发消息时，必须按地址、命令字或流水号进行匹配。
+
+`sendData()` 返回 `true` 只表示数据已进入发送队列；`onDataSent` 表示一次物理写入完成；可靠发送的 `onSuccess` 表示已经收到匹配响应。
+
+## 错误与日志
+
+统一错误对象 `SerialError` 包含 `code`、`message`、`cause`、`devicePath` 和多串口 `serialId`：
+
+```kotlin
+serialPorts.setOnSerialErrorListener { error ->
+    Log.e(
+        "Serial",
+        "id=${error.serialId}, device=${error.devicePath}, code=${error.code}, ${error.message}",
+        error.cause,
+    )
+}
+```
+
+生产环境建议关闭详细日志，或替换为自己的日志实现：
+
+```kotlin
+SerialPortLogUtil.setDebugEnabled(false)
+
+SerialPortLogUtil.setLogger { level, tag, message, throwable ->
+    // 输出到应用已有的日志系统；请避免记录敏感业务数据
+}
+```
+
+## 生命周期与线程
+
+- 页面级或组件级连接：使用 `create()` / `createMulti()`，在 `onDestroy()`、`onCleared()` 或组件释放时调用 `close()`。
+- 跨页面长期连接：由 Repository、Service 或前台 Service 持有管理器，并由持有者统一释放。
+- 不要求在 `Application` 中初始化；旧的 `init(application)` 和 `QuickConfig.apply(application)` 仅为兼容保留，已经废弃。
+- `getInstance()` / `multi()` 返回全局单例，适合明确需要全局连接的场景；必须避免多个页面互相关闭同一个实例。
+- `sendData()` 是非阻塞入队；单路发送队列容量为 64。
+- `SimpleSerialPortManager` 和 `MultiSerialPortManager` 的业务回调派发到主线程。
+
+## 设备扫描与权限排查
+
+```kotlin
+val paths: Array<String> = SerialPortFinder().allDevicesPath
+paths.forEach { path -> Log.d("Serial", path) }
+```
+
+打开失败时依次检查：
+
+1. `/dev/tty*` 节点是否真实存在。
+2. 应用进程是否具有读写权限。
+3. SELinux 是否阻止访问。
+4. 波特率是否在 SDK 支持列表中。
+5. 是否有其他进程或连接占用设备。
+
+权限不足时 SDK 会尝试通过 `su` 执行 `chmod 666`，该过程可能耗时；量产设备更推荐由系统权限、厂商配置或 SELinux 策略授予稳定权限。
+
+## Java 接入
+
+公开 Builder、回调接口和管理器均支持 Java。Java 调用时同样先执行 `init(config)`，不需要传入 `Application`。可参考：
+
+[JavaApiCompatibilityTest.java](serial_lib/src/test/java/com/cl/serialportlibrary/JavaApiCompatibilityTest.java)
+
+## 构建与验证
+
+```bash
+./gradlew :serial_lib:testDebugUnitTest
+./gradlew :serial_lib:lintDebug
+./gradlew :serial_lib:assembleRelease
+```
+
+Release AAR 输出位置：
+
+```text
+serial_lib/build/outputs/aar/serial_lib-release.aar
+```
+
+可以使用 Android Studio APK Analyzer 检查 `lib/arm64-v8a/libSerialPort.so` 和 `lib/x86_64/libSerialPort.so` 的 16 KB 页面对齐情况。
+
+## 演示应用
+
+仓库中的 `app` 模块展示：
+
+- 手机和平板横屏布局。
+- 串口扫描、单路添加和多串口管理。
+- 数据位、校验位、停止位和拆包策略。
+- 自动重连和响应超时重发开关。
+- 单路发送、全部发送、UTF-8/HEX 输入及转换预览。
+- 状态、收发和异常日志。
+
+```bash
+./gradlew :app:assembleDebug
+```
+
+## 联系方式
+
+- QQ 群：458173716
+- [博客](https://blog.csdn.net/a214024475/article/details/113735085)
+- [GitHub](https://github.com/cl-6666/serialPort)
+
+### PC 串口调试助手
+
+<img src="img/pc_ck.jpg" width="440" height="320" alt="PC 串口调试助手" />
+
+[下载地址](https://pan.baidu.com/s/1DL2TOHz9bl9RIKIG3oCSWw?pwd=f7sh)
+
+### QQ 技术交流群
+
+<img src="img/qq2.jpg" width="350" height="560" alt="QQ 技术交流群" />
+
+群号：458173716
 
 ---
+
+Apache License 2.0

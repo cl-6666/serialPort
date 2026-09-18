@@ -1,28 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
 
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="colorItemGrey">#e4e4e4</color>
-    <color name="colorVeryLightBlue">#55a0a7cc</color>
-    <color name="colorLightBlue">#ffa0a7cc</color>
+    <color name="colorPrimary">#1E3A5F</color>
+    <color name="colorPrimaryDark">#12263A</color>
+    <color name="colorAccent">#00897B</color>
+    <color name="colorLightBlue">#F3F6F9</color>
 
-    <color name="log_bg">#e5e5e5</color>
+    <color name="field_bg">#FFF8FAFC</color>
+    <color name="log_bg">#FF111827</color>
+    <color name="log_text">#FFD1FAE5</color>
 
-    <color name="transparent">#00000000</color>
-    <color name="on_pressed">#30bfbfbf</color>
-    <color name="secondary_text">#727272</color>
-    <color name="divider">#B6B6B6</color>
-
-    <color name="color_888888">#888888</color>
-    <color name="color_20ffffff">#20ffffff</color>
+    <color name="secondary_text">#5B6875</color>
+    <color name="divider">#D8E0E8</color>
 </resources>

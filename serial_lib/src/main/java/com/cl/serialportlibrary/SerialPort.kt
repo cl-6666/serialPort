@@ -1,47 +1,66 @@
-package com.cl.serialportlibrary;
+package com.cl.serialportlibrary
 
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.IOException;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.File
+import java.io.FileDescriptor
+import java.io.IOException
+import java.nio.charset.StandardCharsets
 
-public class SerialPort {
+/** JNI 串口访问层。 */
+open class SerialPort {
 
-    static {
-        System.loadLibrary("SerialPort");
-    }
+    internal fun chmod777(file: File?): Boolean {
+        if (file == null || !file.exists()) return false
 
-    private static final String TAG = SerialPort.class.getSimpleName();
-
-    /**
-     * 文件设置最高权限 777 可读 可写 可执行
-     *
-     * @param file 文件
-     * @return 权限修改是否成功
-     */
-    boolean chmod777(File file) {
-        if (null == file || !file.exists()) {
-            // 文件不存在
-            return false;
-        }
-        try {
-            // 获取ROOT权限
-            Process su = Runtime.getRuntime().exec("/system/bin/su");
-            // 修改文件属性为 [可读 可写 可执行]
-            String cmd = "chmod 777 " + file.getAbsolutePath() + "\n" + "exit\n";
-            su.getOutputStream().write(cmd.getBytes());
-            if (0 == su.waitFor() && file.canRead() && file.canWrite() && file.canExecute()) {
-                return true;
+        var process: Process? = null
+        return try {
+            process = Runtime.getRuntime().exec("/system/bin/su")
+            val escapedPath = "'${file.absolutePath.replace("'", "'\\''")}'"
+            process.outputStream.use { output ->
+                output.write("chmod 666 $escapedPath\nexit\n".toByteArray(StandardCharsets.UTF_8))
+                output.flush()
             }
-        } catch (IOException | InterruptedException e) {
-            // 没有ROOT权限
-            e.printStackTrace();
+
+            val deadline = System.currentTimeMillis() + PERMISSION_TIMEOUT_MS
+            while (System.currentTimeMillis() < deadline) {
+                try {
+                    return process.exitValue() == 0 && file.canRead() && file.canWrite()
+                } catch (_: IllegalThreadStateException) {
+                    Thread.sleep(PERMISSION_POLL_INTERVAL_MS)
+                }
+            }
+            SerialPortLogUtil.e(TAG, "修改串口权限超时: ${file.absolutePath}")
+            false
+        } catch (error: InterruptedException) {
+            Thread.currentThread().interrupt()
+            SerialPortLogUtil.e(TAG, "修改串口权限被中断", error)
+            false
+        } catch (error: IOException) {
+            SerialPortLogUtil.e(TAG, "无法通过 su 修改串口权限", error)
+            false
+        } finally {
+            process?.destroy()
         }
-        return false;
     }
 
-    // 打开串口
-    protected native FileDescriptor open(String path, int baudrate, int flags, int databits, int stopbits, int parity);
+    protected external fun open(
+        path: String,
+        baudrate: Int,
+        flags: Int,
+        databits: Int,
+        stopbits: Int,
+        parity: Int,
+    ): FileDescriptor?
 
-    // 关闭串口
-    protected native void close();
+    protected external fun close()
+
+    private companion object {
+        private const val TAG = "SerialPort"
+        private const val PERMISSION_TIMEOUT_MS = 2_000L
+        private const val PERMISSION_POLL_INTERVAL_MS = 20L
+
+        init {
+            System.loadLibrary("SerialPort")
+        }
+    }
 }

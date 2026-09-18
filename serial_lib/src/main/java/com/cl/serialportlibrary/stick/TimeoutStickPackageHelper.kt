@@ -1,63 +1,65 @@
-package com.cl.serialportlibrary.stick;
+package com.cl.serialportlibrary.stick
 
-import android.os.SystemClock;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.IOException
+import java.io.InputStream
+import java.util.ArrayList
 
 /**
- * 基于超时的黏包处理器
- * 在指定时间内没有新数据到达时，认为是一个完整的数据包
- * Author: cl
- * Date: 2023/10/26
+ * 在指定时间没有新数据时，将缓存内容作为一个完整数据包返回。
  */
-public class TimeoutStickPackageHelper implements AbsStickPackageHelper {
-    
-    private final int timeout; // 超时时间（毫秒）
-    private final List<Byte> buffer = new ArrayList<>();
-    
-    public TimeoutStickPackageHelper(int timeout) {
-        this.timeout = timeout;
+open class TimeoutStickPackageHelper(
+    private val timeout: Int,
+) : AbsStickPackageHelper {
+
+    init {
+        require(timeout > 0) { "timeout must be greater than 0" }
     }
-    
-    @Override
-    public byte[] execute(InputStream is) {
-        buffer.clear();
-        long lastDataTime = System.currentTimeMillis();
-        
+
+    private val buffer = ArrayList<Byte>()
+
+    override fun execute(inputStream: InputStream): ByteArray? {
+        buffer.clear()
+        var lastDataTime = System.currentTimeMillis()
         try {
             while (true) {
-                int available = is.available();
+                if (Thread.currentThread().isInterrupted) {
+                    return null
+                }
+                val available = inputStream.available()
                 if (available > 0) {
-                    // 有数据可读
-                    byte[] tempBuffer = new byte[available];
-                    int readBytes = is.read(tempBuffer);
+                    val temporaryBuffer = ByteArray(available)
+                    val readBytes = inputStream.read(temporaryBuffer)
                     if (readBytes > 0) {
-                        for (int i = 0; i < readBytes; i++) {
-                            buffer.add(tempBuffer[i]);
+                        for (index in 0 until readBytes) {
+                            buffer.add(temporaryBuffer[index])
                         }
-                        lastDataTime = System.currentTimeMillis();
+                        if (buffer.size > DEFAULT_MAX_PACKET_SIZE) {
+                            buffer.clear()
+                            throw IllegalStateException("数据包超过最大长度 $DEFAULT_MAX_PACKET_SIZE")
+                        }
+                        lastDataTime = System.currentTimeMillis()
                     }
                 } else {
-                    // 没有数据，检查超时
-                    if (!buffer.isEmpty() && (System.currentTimeMillis() - lastDataTime) >= timeout) {
-                        // 超时且缓冲区有数据，返回数据包
-                        byte[] result = new byte[buffer.size()];
-                        for (int i = 0; i < buffer.size(); i++) {
-                            result[i] = buffer.get(i);
-                        }
-                        return result;
+                    if (buffer.isNotEmpty() && System.currentTimeMillis() - lastDataTime >= timeout) {
+                        return buffer.toByteArray()
                     }
-                    
-                    // 短暂休眠，避免CPU过度占用
-                    SystemClock.sleep(10);
+                    Thread.sleep(CHECK_INTERVAL_MS)
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        } catch (error: IOException) {
+            SerialPortLogUtil.e(TAG, "按超时拆包读取失败", error)
+            throw error
         }
+    }
+
+    private fun List<Byte>.toByteArray(): ByteArray {
+        return ByteArray(size) { index -> this[index] }
+    }
+
+    private companion object {
+        private const val TAG = "TimeoutStickPackageHelper"
+        private const val CHECK_INTERVAL_MS = 10L
+        private const val DEFAULT_MAX_PACKET_SIZE = 1024 * 1024
     }
 }

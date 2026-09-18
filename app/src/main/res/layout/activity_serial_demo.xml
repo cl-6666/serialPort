@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorLightBlue"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/toolbar_height"
+            android:background="@color/colorPrimary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/screen_padding"
+            android:paddingEnd="@dimen/screen_padding">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sdk_console_title"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/title_text_size"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_connection_summary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/no_open_serial_ports"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="@dimen/caption_text_size" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_refresh_devices"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/button_height"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/colorAccent"
+                android:minWidth="0dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="@string/refresh_devices"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="@dimen/body_text_size" />
+
+            <Button
+                android:id="@+id/btn_close_all"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/button_height"
+                android:backgroundTint="@color/secondary_text"
+                android:minWidth="0dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="@string/action_close_all"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="@dimen/body_text_size" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:padding="@dimen/screen_padding">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="@dimen/panel_gap"
+                android:layout_weight="2"
+                app:cardCornerRadius="@dimen/card_radius"
+                app:cardElevation="2dp">
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/card_padding">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/connection_config"
+                            android:textColor="@color/colorPrimary"
+                            android:textSize="@dimen/section_text_size"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/edit_serial_id"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/field_height"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_field"
+                            android:hint="@string/serial_id_hint"
+                            android:importantForAutofill="no"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:text="@string/default_serial_id"
+                            android:textSize="@dimen/body_text_size"
+                            tools:text="PORT_1" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/serial_device"
+                            android:textColor="@color/secondary_text"
+                            android:textSize="@dimen/caption_text_size" />
+
+                        <Spinner
+                            android:id="@+id/spinner_device"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/field_height"
+                            android:background="@drawable/bg_field" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:baselineAligned="false"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="2"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/select_baud_rate"
+                                    android:textColor="@color/secondary_text"
+                                    android:textSize="@dimen/caption_text_size" />
+
+                                <Spinner
+                                    android:id="@+id/spinner_baudrate"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/field_height"
+                                    android:background="@drawable/bg_field" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/title_data_bits"
+                                    android:textColor="@color/secondary_text"
+                                    android:textSize="@dimen/caption_text_size" />
+
+                                <Spinner
+                                    android:id="@+id/spinner_data_bits"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/field_height"
+                                    android:background="@drawable/bg_field" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/title_parity"
+                                    android:textColor="@color/secondary_text"
+                                    android:textSize="@dimen/caption_text_size" />
+
+                                <Spinner
+                                    android:id="@+id/spinner_parity"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/field_height"
+                                    android:background="@drawable/bg_field" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/title_stop_bits"
+                                    android:textColor="@color/secondary_text"
+                                    android:textSize="@dimen/caption_text_size" />
+
+                                <Spinner
+                                    android:id="@+id/spinner_stop_bits"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/field_height"
+                                    android:background="@drawable/bg_field" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/packet_strategy"
+                            android:textColor="@color/secondary_text"
+                            android:textSize="@dimen/caption_text_size" />
+
+                        <Spinner
+                            android:id="@+id/spinner_packet_strategy"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/field_height"
+                            android:background="@drawable/bg_field" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="8dp"
+                            android:background="@color/divider" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_auto_reconnect"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/auto_reconnect"
+                            android:textColor="@color/black"
+                            android:textSize="@dimen/body_text_size" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:orientation="horizontal">
+
+                            <EditText
+                                android:id="@+id/edit_reconnect_interval"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/field_height"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_field"
+                                android:hint="@string/reconnect_interval_hint"
+                                android:importantForAutofill="no"
+                                android:inputType="number"
+                                android:maxLines="1"
+                                android:text="@string/default_reconnect_interval"
+                                android:textSize="@dimen/caption_text_size" />
+
+                            <EditText
+                                android:id="@+id/edit_max_reconnect_attempts"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/field_height"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_field"
+                                android:hint="@string/reconnect_attempts_hint"
+                                android:importantForAutofill="no"
+                                android:inputType="number"
+                                android:maxLines="1"
+                                android:text="@string/default_reconnect_attempts"
+                                android:textSize="@dimen/caption_text_size" />
+                        </LinearLayout>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_reliable_send"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/reliable_send"
+                            android:textColor="@color/black"
+                            android:textSize="@dimen/body_text_size" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:orientation="horizontal">
+
+                            <EditText
+                                android:id="@+id/edit_response_timeout"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/field_height"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_field"
+                                android:hint="@string/response_timeout_hint"
+                                android:importantForAutofill="no"
+                                android:inputType="number"
+                                android:maxLines="1"
+                                android:text="@string/default_response_timeout"
+                                android:textSize="@dimen/caption_text_size" />
+
+                            <EditText
+                                android:id="@+id/edit_max_send_retries"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/field_height"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_field"
+                                android:hint="@string/send_retries_hint"
+                                android:importantForAutofill="no"
+                                android:inputType="number"
+                                android:maxLines="1"
+                                android:text="@string/default_send_retries"
+                                android:textSize="@dimen/caption_text_size" />
+                        </LinearLayout>
+
+                        <Spinner
+                            android:id="@+id/spinner_response_matcher"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/field_height"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_field" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/opened_port_management"
+                            android:textColor="@color/secondary_text"
+                            android:textSize="@dimen/caption_text_size" />
+
+                        <Spinner
+                            android:id="@+id/spinner_opened_port"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/field_height"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/bg_field" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btn_open_port"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                android:backgroundTint="@color/colorAccent"
+                                android:text="@string/action_add_serial_port"
+                                android:textAllCaps="false"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/body_text_size" />
+
+                            <Button
+                                android:id="@+id/btn_close_port"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:backgroundTint="@color/secondary_text"
+                                android:text="@string/action_close_selected"
+                                android:textAllCaps="false"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/body_text_size" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </ScrollView>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                app:cardCornerRadius="@dimen/card_radius"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="@dimen/card_padding">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/data_console"
+                            android:textColor="@color/colorPrimary"
+                            android:textSize="@dimen/section_text_size"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/btn_clear_console"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:backgroundTint="@color/secondary_text"
+                            android:minWidth="0dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="@string/action_clear"
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/caption_text_size" />
+                    </LinearLayout>
+
+                    <ScrollView
+                        android:id="@+id/scroll_console"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginTop="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_log_console"
+                        android:fillViewport="true">
+
+                        <TextView
+                            android:id="@+id/tv_console"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:padding="10dp"
+                            android:textColor="@color/log_text"
+                            android:textIsSelectable="true"
+                            android:textSize="@dimen/caption_text_size"
+                            tools:text="12:00:00.000  SDK 控制台已就绪" />
+                    </ScrollView>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/send_panel"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="@dimen/section_text_size"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="6dp"
+                            android:text="@string/send_target"
+                            android:textColor="@color/secondary_text"
+                            android:textSize="@dimen/body_text_size" />
+
+                        <Spinner
+                            android:id="@+id/spinner_target_port"
+                            android:layout_width="0dp"
+                            android:layout_height="@dimen/field_height"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_field" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal">
+
+                        <Spinner
+                            android:id="@+id/spinner_send_format"
+                            android:layout_width="0dp"
+                            android:layout_height="@dimen/field_height"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_field" />
+
+                        <EditText
+                            android:id="@+id/edit_send_data"
+                            android:layout_width="0dp"
+                            android:layout_height="@dimen/field_height"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="3"
+                            android:background="@drawable/bg_field"
+                            android:hint="@string/send_data_hint"
+                            android:importantForAutofill="no"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:textSize="@dimen/body_text_size" />
+
+                        <Button
+                            android:id="@+id/btn_send"
+                            android:layout_width="@dimen/small_button_width"
+                            android:layout_height="@dimen/button_height"
+                            android:layout_marginEnd="6dp"
+                            android:backgroundTint="@color/colorAccent"
+                            android:minWidth="0dp"
+                            android:text="@string/action_send_current"
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/body_text_size" />
+
+                        <Button
+                            android:id="@+id/btn_send_all"
+                            android:layout_width="@dimen/small_button_width"
+                            android:layout_height="@dimen/button_height"
+                            android:backgroundTint="@color/colorPrimary"
+                            android:minWidth="0dp"
+                            android:text="@string/action_send_all"
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/body_text_size" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_send_preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_field"
+                        android:fontFamily="monospace"
+                        android:paddingStart="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="6dp"
+                        android:text="@string/send_preview_empty"
+                        android:textColor="@color/secondary_text"
+                        android:textIsSelectable="true"
+                        android:textSize="@dimen/caption_text_size" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/multi_port_tip"
+                        android:textColor="@color/secondary_text"
+                        android:textSize="@dimen/caption_text_size" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+</LinearLayout>

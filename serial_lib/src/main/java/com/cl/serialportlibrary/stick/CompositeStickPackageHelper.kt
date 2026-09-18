@@ -1,87 +1,93 @@
-package com.cl.serialportlibrary.stick;
+package com.cl.serialportlibrary.stick
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import com.cl.serialportlibrary.utils.SerialPortLogUtil
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.util.ArrayDeque
 
 /**
- * 组合式黏包处理器
- * 首先尝试使用主要处理器，如果失败则使用备用处理器
- * Author: cl
- * Date: 2023/10/26
+ * 优先使用主处理器，无法解析时再尝试备用处理器。
  */
-public class CompositeStickPackageHelper implements AbsStickPackageHelper {
-    
-    private final AbsStickPackageHelper primaryHelper;
-    private final AbsStickPackageHelper fallbackHelper;
-    private final List<Byte> buffer = new ArrayList<>();
-    
-    public CompositeStickPackageHelper(AbsStickPackageHelper primaryHelper, AbsStickPackageHelper fallbackHelper) {
-        this.primaryHelper = primaryHelper;
-        this.fallbackHelper = fallbackHelper;
-    }
-    
-    @Override
-    public byte[] execute(InputStream is) {
-        // 先尝试读取一些数据到缓冲区
-        try {
-            int available = is.available();
+open class CompositeStickPackageHelper(
+    primaryHelper: AbsStickPackageHelper?,
+    fallbackHelper: AbsStickPackageHelper?,
+) : AbsStickPackageHelper {
+
+    private val primaryHelper = requireNotNull(primaryHelper) { "primaryHelper must not be null" }
+    private val fallbackHelper = requireNotNull(fallbackHelper) { "fallbackHelper must not be null" }
+    private val buffer = ArrayDeque<Byte>()
+
+    override fun execute(inputStream: InputStream): ByteArray? {
+        return try {
+            val available = inputStream.available()
             if (available > 0) {
-                byte[] tempBuffer = new byte[available];
-                int readBytes = is.read(tempBuffer);
+                val temporaryBuffer = ByteArray(available)
+                val readBytes = inputStream.read(temporaryBuffer)
                 if (readBytes > 0) {
-                    for (int i = 0; i < readBytes; i++) {
-                        buffer.add(tempBuffer[i]);
+                    for (index in 0 until readBytes) {
+                        buffer.addLast(temporaryBuffer[index])
+                    }
+                    if (buffer.size > DEFAULT_MAX_PACKET_SIZE) {
+                        buffer.clear()
+                        throw IllegalStateException("组合拆包缓存超过最大长度 $DEFAULT_MAX_PACKET_SIZE")
                     }
                 }
             }
-            
+
             if (buffer.isEmpty()) {
-                return null;
+                return null
             }
-            
-            // 将缓冲区数据转换为字节数组
-            byte[] bufferData = new byte[buffer.size()];
-            for (int i = 0; i < buffer.size(); i++) {
-                bufferData[i] = buffer.get(i);
+
+            val bufferData = buffer.toByteArray()
+            val primaryResult = primaryHelper.execute(ByteArrayInputStream(bufferData))
+            if (primaryResult != null && primaryResult.isNotEmpty()) {
+                removeProcessedBytes(bufferData.consumedLength(primaryResult))
+                return primaryResult
             }
-            
-            // 尝试使用主要处理器
-            ByteArrayInputStream primaryStream = new ByteArrayInputStream(bufferData);
-            byte[] primaryResult = primaryHelper.execute(primaryStream);
-            
-            if (primaryResult != null && primaryResult.length > 0) {
-                // 主要处理器成功，清除已处理的数据
-                if (primaryResult.length <= buffer.size()) {
-                    for (int i = 0; i < primaryResult.length; i++) {
-                        buffer.remove(0);
-                    }
-                }
-                return primaryResult;
+
+            val fallbackResult = fallbackHelper.execute(ByteArrayInputStream(bufferData))
+            if (fallbackResult != null && fallbackResult.isNotEmpty()) {
+                removeProcessedBytes(bufferData.consumedLength(fallbackResult))
+                return fallbackResult
             }
-            
-            // 主要处理器失败，尝试备用处理器
-            ByteArrayInputStream fallbackStream = new ByteArrayInputStream(bufferData);
-            byte[] fallbackResult = fallbackHelper.execute(fallbackStream);
-            
-            if (fallbackResult != null && fallbackResult.length > 0) {
-                // 备用处理器成功，清除已处理的数据
-                if (fallbackResult.length <= buffer.size()) {
-                    for (int i = 0; i < fallbackResult.length; i++) {
-                        buffer.remove(0);
-                    }
-                }
-                return fallbackResult;
-            }
-            
-            // 两个处理器都失败，保持缓冲区数据等待更多数据
-            return null;
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            null
+        } catch (error: IOException) {
+            buffer.clear()
+            SerialPortLogUtil.e(TAG, "组合拆包读取失败", error)
+            throw error
+        } catch (error: RuntimeException) {
+            buffer.clear()
+            throw error
         }
+    }
+
+    private fun removeProcessedBytes(count: Int) {
+        if (count <= buffer.size) {
+            repeat(count) {
+                buffer.removeFirst()
+            }
+        }
+    }
+
+    private fun Collection<Byte>.toByteArray(): ByteArray {
+        return ByteArray(size).also { result ->
+            forEachIndexed { index, value -> result[index] = value }
+        }
+    }
+
+    private fun ByteArray.consumedLength(result: ByteArray): Int {
+        if (result.size > size) return result.size
+        for (start in 0..size - result.size) {
+            if (result.indices.all { offset -> this[start + offset] == result[offset] }) {
+                return start + result.size
+            }
+        }
+        return result.size
+    }
+
+    private companion object {
+        private const val TAG = "CompositeStickPackageHelper"
+        private const val DEFAULT_MAX_PACKET_SIZE = 1024 * 1024
     }
 }
