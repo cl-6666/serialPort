@@ -10,6 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
+
         <!-- Android 16 / targetSdk 36 下临时保留固定横屏兼容模式。 -->
         <property
             android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
