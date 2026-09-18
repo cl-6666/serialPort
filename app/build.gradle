@@ -44,6 +44,6 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
-    implementation project(path: ':serial_lib')
-//    implementation 'com.github.cl-6666:serialPort:v5.0.8'
+//    implementation project(path: ':serial_lib')
+    implementation 'com.github.cl-6666:serialPort:v5.1.0'
 }

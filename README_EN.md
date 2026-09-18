@@ -43,7 +43,7 @@ Add the dependency to the application module:
 
 ```groovy
 dependencies {
-    implementation 'com.github.cl-6666:serialPort:v5.0.8'
+    implementation 'com.github.cl-6666:serialPort:v5.1.0'
 }
 ```
 
